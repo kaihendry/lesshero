@@ -11,8 +11,10 @@ jobs:
     name: Run Go benchmark example
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-go@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+      - name: Build
+        run: go build -v ./...
       - name: Run benchmark
         run: go test -bench . | tee output.txt
 
