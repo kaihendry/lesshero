@@ -7,7 +7,6 @@ import (
 	"os"
 
 	"github.com/go-git/go-git/v5"
-	. "github.com/go-git/go-git/v5/_examples"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/jwalton/gchalk"
 )
@@ -43,7 +42,6 @@ func main() {
 	}
 
 	// ... just iterates over the commits
-	var cCount int
 	err = cIter.ForEach(func(c *object.Commit) error {
 		// print short hash of commit
 		fStats, err := c.Stats()
@@ -71,7 +69,4 @@ func main() {
 
 		return nil
 	})
-	CheckIfError(err)
-
-	fmt.Println(cCount)
 }
