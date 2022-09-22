@@ -23,22 +23,30 @@ func main() {
 		log.Fatal(err)
 	}
 
+	err := lessHero(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+}
+
+func lessHero(path string) error {
 	// We instantiate a new repository targeting the given path (the .git folder)
 	r, err := git.PlainOpen(path)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	// ... retrieving the HEAD reference
 	ref, err := r.Head()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	// ... retrieves the commit history
 	cIter, err := r.Log(&git.LogOptions{From: ref.Hash()})
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	// ... just iterates over the commits
@@ -47,7 +55,7 @@ func main() {
 		fStats, err := c.Stats()
 		total := 0
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 		for _, fStat := range fStats {
 			// fmt.Println(fStat.Name, fStat.Addition, fStat.Deletion)
@@ -66,7 +74,8 @@ func main() {
 		case total > 0:
 			fmt.Println(gchalk.Red(commitId))
 		}
-
 		return nil
+
 	})
+	return nil
 }
