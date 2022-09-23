@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1663940053752,
+  "lastUpdate": 1663940882707,
   "repoUrl": "https://github.com/kaihendry/lesshero",
   "entries": {
     "Go Benchmark": [
@@ -90,6 +90,36 @@ window.BENCHMARK_DATA = {
             "value": 229346,
             "unit": "ns/op",
             "extra": "4959 times\n2 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hendry@iki.fi",
+            "name": "Kai Hendry",
+            "username": "kaihendry"
+          },
+          "committer": {
+            "email": "hendry@iki.fi",
+            "name": "Kai Hendry",
+            "username": "kaihendry"
+          },
+          "distinct": true,
+          "id": "aa0958a371458e3e0d723ac7608dffb028eb1655",
+          "message": "Add chart option with https://github.com/go-echarts/go-echarts",
+          "timestamp": "2022-09-23T21:33:36+08:00",
+          "tree_id": "00b84bcb7167485aa42a289ac345ca0daf1c207e",
+          "url": "https://github.com/kaihendry/lesshero/commit/aa0958a371458e3e0d723ac7608dffb028eb1655"
+        },
+        "date": 1663940882276,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkHero",
+            "value": 166993,
+            "unit": "ns/op",
+            "extra": "6360 times\n2 procs"
           }
         ]
       }
