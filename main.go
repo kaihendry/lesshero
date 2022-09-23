@@ -107,7 +107,7 @@ func chartHero(commits []Commit, fn string) error {
 	// draw commits
 	line.SetXAxis(getTimes(commits)).AddSeries("SLOC", getSlocs(commits))
 
-	dynamicFn := fmt.Sprintf(`goecharts_%s.on('click', function (params) { alert('You clicked on a ' + params.name + ' element.'); console.log(params.name); });`, line.ChartID)
+	dynamicFn := fmt.Sprintf(`goecharts_%s.on('click', function (params) {   navigator.clipboard.writeText(params.name); console.log(params.name, "copied to clipboard"); });`, line.ChartID)
 	line.AddJSFuncs(dynamicFn)
 
 	// Where the magic happens
