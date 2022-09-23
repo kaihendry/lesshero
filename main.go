@@ -1,13 +1,14 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
 	"os"
 	"time"
 
+	"github.com/go-echarts/go-echarts/v2/charts"
+	"github.com/go-echarts/go-echarts/v2/opts"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/jwalton/gchalk"
@@ -21,14 +22,15 @@ type Commit struct {
 	RunningTotal int
 }
 
-// Open an existing repository in a specific folder.
 func main() {
-	// require a repoPath to a git repo using flag package
-	var repoPath, jsonPath string
-	flag.StringVar(&repoPath, "r", ".", "path to git repo")
-	flag.StringVar(&jsonPath, "j", "output.json", "path to json output")
-
+	var chartPath string
+	repoPath := "."
+	flag.StringVar(&chartPath, "c", "", "path to html chart output")
 	flag.Parse()
+
+	if flag.Arg(0) != "" {
+		repoPath = flag.Arg(0)
+	}
 
 	// check path exists else exit
 	if _, err := os.Stat(repoPath); os.IsNotExist(err) {
@@ -40,7 +42,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// calculate running total, starting from the end of commits
+	// calculate running total, starting from the end (beginning) of commits
 	runningTotal := 0
 	for i := len(commits) - 1; i >= 0; i-- {
 		runningTotal += commits[i].Total
@@ -52,13 +54,63 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if jsonPath != "" {
-		err = jsonHero(commits, jsonPath)
+	if chartPath != "" {
+		err = chartHero(commits, chartPath)
 		if err != nil {
 			log.Fatal(err)
 		}
 	}
 
+}
+
+func getTimes(commits []Commit) []time.Time {
+	var times []time.Time
+	for i := len(commits) - 1; i >= 0; i-- {
+		times = append(times, commits[i].Date)
+	}
+	return times
+}
+
+func getSlocs(commits []Commit) []opts.LineData {
+	items := make([]opts.LineData, 0)
+	for i := len(commits) - 1; i >= 0; i-- {
+		items = append(items, opts.LineData{Value: commits[i].RunningTotal, Name: commits[i].Hash})
+	}
+	return items
+}
+
+func chartHero(commits []Commit, fn string) error {
+
+	// create a new bar instance
+	line := charts.NewLine()
+	// set some global options like Title/Legend/ToolTip or anything else
+	line.SetGlobalOptions(
+		charts.WithDataZoomOpts(opts.DataZoom{
+			Type: "inside",
+		}),
+		charts.WithTooltipOpts(opts.Tooltip{
+			Trigger:   "axis",
+			TriggerOn: "mousemove|click",
+			Show:      true,
+			Formatter: "{b}",
+		}),
+		charts.WithTitleOpts(opts.Title{
+			Title:    "Less code is the best code",
+			Subtitle: "https://github.com/kaihendry/lesshero",
+		}),
+		// label Y axis code count
+		charts.WithYAxisOpts(opts.YAxis{
+			Name: "Code Count",
+		}),
+	)
+
+	// draw commits
+	line.SetXAxis(getTimes(commits)).AddSeries("SLOC", getSlocs(commits))
+
+	// Where the magic happens
+	f, _ := os.Create(fn)
+	line.Render(f)
+	return nil
 }
 
 func lessHero(path string) (commits []Commit, err error) {
@@ -101,50 +153,6 @@ func lessHero(path string) (commits []Commit, err error) {
 		return nil
 	})
 	return commits, err
-}
-
-func jsonHero(commits []Commit, fn string) error {
-	// TODO: write to json
-	// [
-	// ["Date", "Hash", "Author", "Total", "RunningTotal"],
-	// ["2020-01-01", "1234567", "John", 1, 1],
-	// ]
-
-	var data [][]string
-	data = append(data, []string{"Date", "Hash", "Author", "Total", "RunningTotal"})
-	for _, commit := range commits {
-		data = append(data, []string{
-			commit.Date.Format("2006-01-02"),
-			commit.Hash,
-			commit.Author,
-			fmt.Sprintf("%d", commit.Total),
-			fmt.Sprintf("%d", commit.RunningTotal),
-		})
-	}
-
-	// create file
-	f, err := os.Create(fn)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	// marshal to json for https://jsfiddle.net/kaihendry/ef5n324w/
-
-	jsonString := fmt.Sprintf("[")
-	for i, e := range data {
-		json, _ := json.Marshal(e)
-		if i != 0 {
-			jsonString += fmt.Sprintf(",")
-		}
-		jsonString += fmt.Sprintf("\n%s", json)
-	}
-	jsonString += fmt.Sprintf("\n]")
-
-	// write jsonString to file
-	_, err = f.WriteString(jsonString)
-
-	return err
 }
 
 func highlightHero(commits []Commit) error {
