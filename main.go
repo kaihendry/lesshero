@@ -94,10 +94,7 @@ func chartHero(commits []Commit, fn string) error {
 			Show:      true,
 			Formatter: "{b}",
 		}),
-		charts.WithTitleOpts(opts.Title{
-			Title:    "Less code is the best code",
-			Subtitle: "https://github.com/kaihendry/lesshero",
-		}),
+		charts.WithTitleOpts(opts.Title{Title: "https://github.com/kaihendry/lesshero"}),
 		// label Y axis code count
 		charts.WithYAxisOpts(opts.YAxis{
 			Name: "Code Count",
