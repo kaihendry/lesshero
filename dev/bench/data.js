@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1664069885982,
+  "lastUpdate": 1664070067554,
   "repoUrl": "https://github.com/kaihendry/lesshero",
   "entries": {
     "Go Benchmark": [
@@ -330,6 +330,36 @@ window.BENCHMARK_DATA = {
             "value": 195455,
             "unit": "ns/op",
             "extra": "5356 times\n2 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hendry@iki.fi",
+            "name": "Kai Hendry",
+            "username": "kaihendry"
+          },
+          "committer": {
+            "email": "hendry@iki.fi",
+            "name": "Kai Hendry",
+            "username": "kaihendry"
+          },
+          "distinct": true,
+          "id": "7f6b6528ad2212fd729c72b4c6052af153696540",
+          "message": "Fix tagging issue hopefully",
+          "timestamp": "2022-09-25T09:36:58+08:00",
+          "tree_id": "677c56306dcb24ac840fde17f8797ba7363ba769",
+          "url": "https://github.com/kaihendry/lesshero/commit/7f6b6528ad2212fd729c72b4c6052af153696540"
+        },
+        "date": 1664070066655,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkHero",
+            "value": 208557,
+            "unit": "ns/op",
+            "extra": "4830 times\n2 procs"
           }
         ]
       }
