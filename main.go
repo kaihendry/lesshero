@@ -63,10 +63,9 @@ func main() {
 
 }
 
-func getTimes(commits []Commit) []time.Time {
-	var times []time.Time
+func getTimes(commits []Commit) (times []string) {
 	for i := len(commits) - 1; i >= 0; i-- {
-		times = append(times, commits[i].Date)
+		times = append(times, commits[i].Date.Format("2006-01-02"))
 	}
 	return times
 }
@@ -85,6 +84,7 @@ func chartHero(commits []Commit, fn string) error {
 	line := charts.NewLine()
 	// set some global options like Title/Legend/ToolTip or anything else
 	line.SetGlobalOptions(
+		charts.WithInitializationOpts(opts.Initialization{PageTitle: "Less Hero"}),
 		charts.WithDataZoomOpts(opts.DataZoom{
 			Type: "inside",
 		}),
@@ -98,6 +98,11 @@ func chartHero(commits []Commit, fn string) error {
 		// label Y axis code count
 		charts.WithYAxisOpts(opts.YAxis{
 			Name: "Code Count",
+		}),
+		charts.WithXAxisOpts(opts.XAxis{
+			AxisLabel: &opts.AxisLabel{
+				Rotate: 20,
+			},
 		}),
 	)
 
