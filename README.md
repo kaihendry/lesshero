@@ -1,4 +1,4 @@
-DEMO: https://s.natalian.org/2022-09-25/chart.html
+DEMO: https://s.natalian.org/2022-09-25/chart.html for a checkout of https://git.suckless.org/dwm/
 
 # Highlight efforts to reduce bloat
 
