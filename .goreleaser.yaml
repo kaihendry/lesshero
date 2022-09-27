@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=https://goreleaser.com/static/schema.json
 dockers:
   - image_templates:
-      - "kaihendry/{{.ProjectName}}"
+      - "hendry/{{.ProjectName}}"
 
 brews:
   - name: lesshero
