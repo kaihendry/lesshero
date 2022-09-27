@@ -1,5 +1,10 @@
 DEMO: https://s.natalian.org/2022-09-25/chart.html for a checkout of https://git.suckless.org/dwm/
 
+# Usage
+
+    go install github.com/kaihendry/lesshero
+    lesshero -c chart.html /path/to/a/full/git/checkout
+
 # Highlight efforts to reduce bloat
 
 It's important for your health to watch your weight.
