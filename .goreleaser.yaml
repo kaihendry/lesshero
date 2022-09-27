@@ -1,0 +1,16 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+dockers:
+  - image_templates:
+      - "kaihendry/{{.ProjectName}}"
+
+brews:
+  - name: lesshero
+    tap:
+      owner: kaihendry
+      name: lesshero
+      branch: homebrew
+    commit_msg_template: "Brew formula update for {{ .ProjectName }} version {{ .Tag }}"
+    folder: Formula
+    homepage: "https://github.com/kaihendry/lesshero"
+    description: Highlight refactors and efforts to keep code base lean
+    license: "MIT"
