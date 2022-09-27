@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1664287827298,
+  "lastUpdate": 1664289060472,
   "repoUrl": "https://github.com/kaihendry/lesshero",
   "entries": {
     "Go Benchmark": [
@@ -570,6 +570,36 @@ window.BENCHMARK_DATA = {
             "value": 168586,
             "unit": "ns/op",
             "extra": "6957 times\n2 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hendry@iki.fi",
+            "name": "Kai Hendry",
+            "username": "kaihendry"
+          },
+          "committer": {
+            "email": "hendry@iki.fi",
+            "name": "Kai Hendry",
+            "username": "kaihendry"
+          },
+          "distinct": true,
+          "id": "7afc91655e173971d66feb1943e9f606b73932e2",
+          "message": "Trying to fix exec ...: no such file or directory\n\n    $ docker run --network none hendry/lesshero\n    exec /lesshero: no such file or directory",
+          "timestamp": "2022-09-27T22:29:31+08:00",
+          "tree_id": "6a9a148b2e209494d6100ce3ec147bb115a0c4fd",
+          "url": "https://github.com/kaihendry/lesshero/commit/7afc91655e173971d66feb1943e9f606b73932e2"
+        },
+        "date": 1664289060043,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkHero",
+            "value": 183739,
+            "unit": "ns/op",
+            "extra": "6571 times\n2 procs"
           }
         ]
       }
