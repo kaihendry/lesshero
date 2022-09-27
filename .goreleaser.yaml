@@ -1,4 +1,9 @@
 # yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+builds:
+  - id: lesshero
+    env:
+      - CGO_ENABLED=0
+
 dockers:
   - image_templates:
       - "hendry/{{.ProjectName}}"
