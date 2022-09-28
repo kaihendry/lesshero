@@ -149,7 +149,7 @@ func lessHero(path string) (commits []Commit, err error) {
 		return
 	}
 
-	log.Printf("Total commits: %d", count)
+	// log.Printf("Total commits: %d", count)
 
 	cIter, err = r.Log(&git.LogOptions{From: ref.Hash()})
 	if err != nil {
@@ -157,8 +157,11 @@ func lessHero(path string) (commits []Commit, err error) {
 	}
 
 	bar := progressbar.Default(int64(count))
-	commits = make([]Commit, 0, count)
+	commits = make([]Commit, count)
 	countIndex := 0
+
+	// print length of commits
+	// log.Printf("Commits: %d", len(commits))
 
 	err = cIter.ForEach(func(c *object.Commit) error {
 		bar.Add(1)
