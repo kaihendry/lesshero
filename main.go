@@ -39,7 +39,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	commits, err := lessHero(repoPath)
+	commits, gitSrc, err := lessHero(repoPath)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -56,7 +56,7 @@ func main() {
 	}
 
 	if chartPath != "" {
-		err = chartHero(commits, chartPath)
+		err = chartHero(commits, gitSrc, chartPath)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -79,7 +79,7 @@ func getSlocs(commits []Commit) []opts.LineData {
 	return items
 }
 
-func chartHero(commits []Commit, fn string) error {
+func chartHero(commits []Commit, gitSrc, fn string) error {
 
 	line := charts.NewLine()
 	// set some global options like Title/Legend/ToolTip or anything else
@@ -94,7 +94,7 @@ func chartHero(commits []Commit, fn string) error {
 			Show:      true,
 			Formatter: "{b}",
 		}),
-		charts.WithTitleOpts(opts.Title{Title: "https://github.com/kaihendry/lesshero"}),
+		charts.WithTitleOpts(opts.Title{Title: gitSrc}),
 		// label Y axis code count
 		charts.WithYAxisOpts(opts.YAxis{
 			Name: "Code Count",
@@ -120,11 +120,22 @@ func chartHero(commits []Commit, fn string) error {
 	return nil
 }
 
-func lessHero(path string) (commits []Commit, err error) {
+func lessHero(path string) (commits []Commit, gitSrc string, err error) {
 	// We instantiate a new repository targeting the given path (the .git folder)
 	r, err := git.PlainOpen(path)
 	if err != nil {
 		return
+	}
+
+	remotes, err := r.Remotes()
+	if err != nil {
+		return
+	}
+	for _, remote := range remotes {
+		r := remote.Config()
+		if r.Name == "origin" {
+			gitSrc = r.URLs[0]
+		}
 	}
 
 	// ... retrieving the HEAD reference
@@ -183,7 +194,7 @@ func lessHero(path string) (commits []Commit, err error) {
 		countIndex++
 		return nil
 	})
-	return commits, err
+	return
 }
 
 func highlightHero(commits []Commit) {
