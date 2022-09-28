@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1664370132715,
+  "lastUpdate": 1664372166296,
   "repoUrl": "https://github.com/kaihendry/lesshero",
   "entries": {
     "Go Benchmark": [
@@ -690,6 +690,36 @@ window.BENCHMARK_DATA = {
             "value": 179811,
             "unit": "ns/op",
             "extra": "6602 times\n2 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hendry@iki.fi",
+            "name": "Kai Hendry",
+            "username": "kaihendry"
+          },
+          "committer": {
+            "email": "hendry@iki.fi",
+            "name": "Kai Hendry",
+            "username": "kaihendry"
+          },
+          "distinct": true,
+          "id": "8620924f7db81dfc3355ceca4d435427e5952bc0",
+          "message": "Just install a sloc tool",
+          "timestamp": "2022-09-28T21:35:18+08:00",
+          "tree_id": "247556d8ba69a1b555beaef584b1f9a97ce05558",
+          "url": "https://github.com/kaihendry/lesshero/commit/8620924f7db81dfc3355ceca4d435427e5952bc0"
+        },
+        "date": 1664372164465,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkHero",
+            "value": 256152,
+            "unit": "ns/op",
+            "extra": "4675 times\n2 procs"
           }
         ]
       }
