@@ -15,6 +15,12 @@ import (
 	"github.com/schollz/progressbar/v3"
 )
 
+var (
+	version  = "dev"
+	commit   = "none"
+	repoPath = "." // pwd is default
+)
+
 type Commit struct {
 	hash         string
 	author       string
@@ -25,30 +31,25 @@ type Commit struct {
 
 func main() {
 	var chartPath string
-	repoPath := "."
 	flag.StringVar(&chartPath, "c", "", "path to html chart output")
-	highlight := flag.Bool("hl", false, "highlight")
+	highlight := flag.Bool("hl", true, "highlight")
+	flag.Usage = func() {
+		if commit == "none" {
+			fmt.Fprintf(os.Stderr, "go version -m ~/go/bin/lesshero\n")
+		} else {
+			fmt.Fprintf(os.Stderr, "https://github.com/kaihendry/lesshero %s (%s)\n", version, commit)
+		}
+		flag.PrintDefaults()
+	}
 	flag.Parse()
 
 	if flag.Arg(0) != "" {
 		repoPath = flag.Arg(0)
 	}
 
-	// check path exists else exit
-	if _, err := os.Stat(repoPath); os.IsNotExist(err) {
-		log.Fatal(err)
-	}
-
 	commits, gitSrc, err := lessHero(repoPath)
 	if err != nil {
-		log.Fatal(err)
-	}
-
-	// calculate running total, starting from the end (beginning) of commits
-	runningTotal := 0
-	for i := len(commits) - 1; i >= 0; i-- {
-		runningTotal += commits[i].total
-		commits[i].runningTotal = runningTotal
+		log.Fatalf("%s: %v", repoPath, err)
 	}
 
 	if *highlight {
@@ -56,12 +57,17 @@ func main() {
 	}
 
 	if chartPath != "" {
+		// calculate running total, starting from the end (beginning) of commits
+		runningTotal := 0
+		for i := len(commits) - 1; i >= 0; i-- {
+			runningTotal += commits[i].total
+			commits[i].runningTotal = runningTotal
+		}
 		err = chartHero(commits, gitSrc, chartPath)
 		if err != nil {
 			log.Fatal(err)
 		}
 	}
-
 }
 
 func getTimes(commits []Commit) (times []string) {
@@ -82,7 +88,6 @@ func getSlocs(commits []Commit) []opts.LineData {
 func chartHero(commits []Commit, gitSrc, fn string) error {
 
 	line := charts.NewLine()
-	// set some global options like Title/Legend/ToolTip or anything else
 	line.SetGlobalOptions(
 		charts.WithInitializationOpts(opts.Initialization{PageTitle: "Less Hero"}),
 		charts.WithDataZoomOpts(opts.DataZoom{
@@ -95,7 +100,6 @@ func chartHero(commits []Commit, gitSrc, fn string) error {
 			Formatter: "{b}",
 		}),
 		charts.WithTitleOpts(opts.Title{Title: gitSrc}),
-		// label Y axis code count
 		charts.WithYAxisOpts(opts.YAxis{
 			Name: "Code Count",
 		}),
@@ -105,8 +109,6 @@ func chartHero(commits []Commit, gitSrc, fn string) error {
 			},
 		}),
 	)
-
-	// draw commits
 	line.SetXAxis(getTimes(commits)).AddSeries("SLOC", getSlocs(commits))
 
 	dynamicFn := fmt.Sprintf(`goecharts_%s.on('click', function (params) {   navigator.clipboard.writeText(params.name); console.log(params.name, "copied to clipboard"); });`, line.ChartID)
@@ -138,13 +140,11 @@ func lessHero(path string) (commits []Commit, gitSrc string, err error) {
 		}
 	}
 
-	// ... retrieving the HEAD reference
 	ref, err := r.Head()
 	if err != nil {
 		return
 	}
 
-	// ... retrieves the commit history
 	cIter, err := r.Log(&git.LogOptions{From: ref.Hash()})
 	if err != nil {
 		return
@@ -160,8 +160,6 @@ func lessHero(path string) (commits []Commit, gitSrc string, err error) {
 		return
 	}
 
-	// log.Printf("Total commits: %d", count)
-
 	cIter, err = r.Log(&git.LogOptions{From: ref.Hash()})
 	if err != nil {
 		return
@@ -170,9 +168,6 @@ func lessHero(path string) (commits []Commit, gitSrc string, err error) {
 	bar := progressbar.Default(int64(count))
 	commits = make([]Commit, count)
 	countIndex := 0
-
-	// print length of commits
-	// log.Printf("Commits: %d", len(commits))
 
 	err = cIter.ForEach(func(c *object.Commit) error {
 		bar.Add(1)
@@ -199,18 +194,18 @@ func lessHero(path string) (commits []Commit, gitSrc string, err error) {
 
 func highlightHero(commits []Commit) {
 	for _, commit := range commits {
-		// commitId is YYYY-MM-DD date, hash, author
 		commitId := fmt.Sprintf("%s %s %s %d %d", commit.date.Format("2006-01-02"), commit.hash, commit.author, commit.total, commit.runningTotal)
 		switch {
-		// color total ranges
 		case commit.total < -10:
-			fmt.Println(gchalk.BrightGreen(commitId))
+			fmt.Println(gchalk.WithGreen().Bold(commitId))
 		case commit.total < 0:
 			fmt.Println(gchalk.Green(commitId))
+		case commit.total > 50:
+			fmt.Println(gchalk.WithRed().Bold(commitId))
 		case commit.total > 10:
-			fmt.Println(gchalk.BrightRed(commitId))
+			fmt.Println(gchalk.BrightYellow(commitId))
 		case commit.total > 0:
-			fmt.Println(gchalk.Red(commitId))
+			fmt.Println(gchalk.Yellow(commitId))
 		}
 	}
 }
