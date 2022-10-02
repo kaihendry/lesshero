@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1664620421870,
+  "lastUpdate": 1664678280958,
   "repoUrl": "https://github.com/kaihendry/lesshero",
   "entries": {
     "Go Benchmark": [
@@ -810,6 +810,36 @@ window.BENCHMARK_DATA = {
             "value": 189029,
             "unit": "ns/op",
             "extra": "5696 times\n2 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hendry@iki.fi",
+            "name": "Kai Hendry",
+            "username": "kaihendry"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d299d17795df1c7781fa791792e98b39f59df0f2",
+          "message": "Create codeql-analysis.yml",
+          "timestamp": "2022-10-02T10:37:15+08:00",
+          "tree_id": "064be747af6331a3fcc7a04b058ca6e4d4d5fc2c",
+          "url": "https://github.com/kaihendry/lesshero/commit/d299d17795df1c7781fa791792e98b39f59df0f2"
+        },
+        "date": 1664678279254,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkHero",
+            "value": 263620,
+            "unit": "ns/op",
+            "extra": "4665 times\n2 procs"
           }
         ]
       }
