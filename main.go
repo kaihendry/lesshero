@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sync"
 	"time"
 
+	"github.com/fluxcd/go-git/v5"
+	"github.com/fluxcd/go-git/v5/plumbing/object"
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/opts"
-	"github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/jwalton/gchalk"
 	"github.com/schollz/progressbar/v3"
 )
@@ -150,7 +151,6 @@ func lessHero(path string) (commits []Commit, gitSrc string, err error) {
 		return
 	}
 
-	// git rev-list HEAD --count
 	count := 0
 	err = cIter.ForEach(func(c *object.Commit) error {
 		count++
@@ -167,28 +167,45 @@ func lessHero(path string) (commits []Commit, gitSrc string, err error) {
 
 	bar := progressbar.Default(int64(count))
 	commits = make([]Commit, count)
+
+	fmt.Printf("Commits: %d\n", len(commits))
+
+	semaphore := make(chan bool, 10)
+	wg := sync.WaitGroup{}
 	countIndex := 0
 
 	err = cIter.ForEach(func(c *object.Commit) error {
-		bar.Add(1)
-		fStats, err := c.Stats()
-		total := 0
-		if err != nil {
-			return err
-		}
-		for _, fStat := range fStats {
-			// log.Println(fStat.Name, fStat.Addition, fStat.Deletion)
-			total += fStat.Addition - fStat.Deletion
-		}
-		commits[countIndex] = Commit{
-			hash:   c.Hash.String()[:7],
-			author: c.Author.Name,
-			total:  total,
-			date:   c.Author.When,
-		}
+		wg.Add(1)
+		semaphore <- true
+		go func(c *object.Commit, countIndex int) {
+			defer func() {
+				<-semaphore
+				wg.Done()
+			}()
+
+			fStats, err := c.Stats()
+			total := 0
+			if err != nil {
+				log.Fatal(err)
+			}
+			for _, fStat := range fStats {
+				//log.Println(fStat.Name, fStat.Addition, fStat.Deletion)
+				total += fStat.Addition - fStat.Deletion
+			}
+			commits[countIndex] = Commit{
+				hash:   c.Hash.String()[:7],
+				author: c.Author.Name,
+				total:  total,
+				date:   c.Author.When,
+			}
+			bar.Add(1)
+		}(c, countIndex)
 		countIndex++
 		return nil
 	})
+
+	wg.Wait()
+
 	return
 }
 
