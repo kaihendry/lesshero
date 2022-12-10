@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sort"
 	"sync"
 	"time"
 
@@ -72,7 +73,7 @@ func main() {
 }
 
 func getTimes(commits []Commit) (times []string) {
-	for i := len(commits) - 1; i >= 0; i-- {
+	for i := 0; i < len(commits); i++ {
 		times = append(times, commits[i].date.Format("2006-01-02"))
 	}
 	return times
@@ -87,7 +88,6 @@ func getSlocs(commits []Commit) []opts.LineData {
 }
 
 func chartHero(commits []Commit, gitSrc, fn string) error {
-
 	line := charts.NewLine()
 	line.SetGlobalOptions(
 		charts.WithInitializationOpts(opts.Initialization{PageTitle: "Less Hero"}),
@@ -112,7 +112,10 @@ func chartHero(commits []Commit, gitSrc, fn string) error {
 	)
 	line.SetXAxis(getTimes(commits)).AddSeries("SLOC", getSlocs(commits))
 
-	dynamicFn := fmt.Sprintf(`goecharts_%s.on('click', function (params) {   navigator.clipboard.writeText(params.name); console.log(params.name, "copied to clipboard"); });`, line.ChartID)
+	dynamicFn := fmt.Sprintf(
+		`goecharts_%s.on('click', function (params) {   navigator.clipboard.writeText(params.name); console.log(params.name, "copied to clipboard"); });`,
+		line.ChartID,
+	)
 	line.AddJSFuncs(dynamicFn)
 
 	f, err := os.Create(fn)
@@ -124,7 +127,6 @@ func chartHero(commits []Commit, gitSrc, fn string) error {
 }
 
 func lessHero(path string) (commits []Commit, gitSrc string, err error) {
-	// We instantiate a new repository targeting the given path (the .git folder)
 	r, err := git.PlainOpen(path)
 	if err != nil {
 		return
@@ -168,8 +170,6 @@ func lessHero(path string) (commits []Commit, gitSrc string, err error) {
 	bar := progressbar.Default(int64(count))
 	commits = make([]Commit, count)
 
-	fmt.Printf("Commits: %d\n", len(commits))
-
 	semaphore := make(chan bool, 10)
 	wg := sync.WaitGroup{}
 	countIndex := 0
@@ -189,7 +189,6 @@ func lessHero(path string) (commits []Commit, gitSrc string, err error) {
 				log.Fatal(err)
 			}
 			for _, fStat := range fStats {
-				//log.Println(fStat.Name, fStat.Addition, fStat.Deletion)
 				total += fStat.Addition - fStat.Deletion
 			}
 			commits[countIndex] = Commit{
@@ -206,12 +205,24 @@ func lessHero(path string) (commits []Commit, gitSrc string, err error) {
 
 	wg.Wait()
 
+	// sort commits by ascending date
+	sort.Slice(commits, func(i, j int) bool {
+		return commits[i].date.Before(commits[j].date)
+	})
+
 	return
 }
 
 func highlightHero(commits []Commit) {
 	for _, commit := range commits {
-		commitId := fmt.Sprintf("%s %s %s %d %d", commit.date.Format("2006-01-02"), commit.hash, commit.author, commit.total, commit.runningTotal)
+		commitId := fmt.Sprintf(
+			"%s %s %s %d %d",
+			commit.date.Format("2006-01-02"),
+			commit.hash,
+			commit.author,
+			commit.total,
+			commit.runningTotal,
+		)
 		switch {
 		case commit.total < -10:
 			fmt.Println(gchalk.WithGreen().Bold(commitId))
