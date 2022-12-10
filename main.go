@@ -170,7 +170,8 @@ func lessHero(path string) (commits []Commit, gitSrc string, err error) {
 	bar := progressbar.Default(int64(count))
 	commits = make([]Commit, count)
 
-	semaphore := make(chan bool, 10)
+	// TODO: Still unstable when > 1 core / fails tests
+	semaphore := make(chan bool, 1)
 	wg := sync.WaitGroup{}
 	countIndex := 0
 
