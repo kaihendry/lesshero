@@ -11,10 +11,11 @@ import (
 
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/opts"
-	"github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/plumbing/object"
+
+	"github.com/fluxcd/go-git/v5"
+	"github.com/fluxcd/go-git/v5/plumbing/object"
+
 	"github.com/jwalton/gchalk"
-	"github.com/schollz/progressbar/v3"
 )
 
 var (
@@ -167,7 +168,6 @@ func lessHero(path string) (commits []Commit, gitSrc string, err error) {
 		return
 	}
 
-	bar := progressbar.Default(int64(count))
 	commits = make([]Commit, count)
 
 	// TODO: Still unstable when > 1 core / fails tests
@@ -198,7 +198,6 @@ func lessHero(path string) (commits []Commit, gitSrc string, err error) {
 				total:  total,
 				date:   c.Author.When,
 			}
-			bar.Add(1)
 		}(c, countIndex)
 		countIndex++
 		return nil

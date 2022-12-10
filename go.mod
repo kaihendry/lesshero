@@ -3,10 +3,10 @@ module github.com/kaihendry/lesshero
 go 1.19
 
 require (
+	github.com/fluxcd/go-git/v5 v5.0.0-20221206140629-ec778c2c37df
 	github.com/go-echarts/go-echarts/v2 v2.2.4
 	github.com/go-git/go-git/v5 v5.5.0
 	github.com/jwalton/gchalk v1.3.0
-	github.com/schollz/progressbar/v3 v3.12.2
 )
 
 require (
@@ -21,10 +21,7 @@ require (
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
 	github.com/jwalton/go-supportscolor v1.1.0 // indirect
 	github.com/kevinburke/ssh_config v1.2.0 // indirect
-	github.com/mattn/go-runewidth v0.0.14 // indirect
-	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db // indirect
 	github.com/pjbgf/sha1cd v0.2.3 // indirect
-	github.com/rivo/uniseg v0.4.3 // indirect
 	github.com/sergi/go-diff v1.2.0 // indirect
 	github.com/skeema/knownhosts v1.1.0 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
