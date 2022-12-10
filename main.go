@@ -9,10 +9,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/fluxcd/go-git/v5"
-	"github.com/fluxcd/go-git/v5/plumbing/object"
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/opts"
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/jwalton/gchalk"
 	"github.com/schollz/progressbar/v3"
 )
