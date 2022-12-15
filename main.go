@@ -174,7 +174,7 @@ func lessHero(path string) (commits []Commit, gitSrc string, err error) {
 	commits = make([]Commit, count)
 
 	// TODO: Still unstable when > 1 core / fails tests
-	semaphore := make(chan bool, 1)
+	semaphore := make(chan bool, 3)
 	wg := sync.WaitGroup{}
 	countIndex := 0
 
