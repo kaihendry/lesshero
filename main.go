@@ -130,13 +130,14 @@ func chartHero(commits []Commit, gitSrc, fn string) error {
 func lessHero(path string) (commits []Commit, gitSrc string, err error) {
 	r, err := git.PlainOpen(path)
 	if err != nil {
-		return
+		return nil, "", fmt.Errorf("git.PlainOpen: %w", err)
 	}
 
 	remotes, err := r.Remotes()
 	if err != nil {
-		return
+		return nil, "", fmt.Errorf("r.Remotes: %w", err)
 	}
+
 	for _, remote := range remotes {
 		r := remote.Config()
 		if r.Name == "origin" {
@@ -146,12 +147,12 @@ func lessHero(path string) (commits []Commit, gitSrc string, err error) {
 
 	ref, err := r.Head()
 	if err != nil {
-		return
+		return nil, "", fmt.Errorf("r.Head: %w", err)
 	}
 
 	cIter, err := r.Log(&git.LogOptions{From: ref.Hash()})
 	if err != nil {
-		return
+		return nil, "", fmt.Errorf("r.Log: %w", err)
 	}
 
 	count := 0
@@ -160,12 +161,12 @@ func lessHero(path string) (commits []Commit, gitSrc string, err error) {
 		return nil
 	})
 	if err != nil {
-		return
+		return nil, "", fmt.Errorf("cIter.ForEach: %w", err)
 	}
 
 	cIter, err = r.Log(&git.LogOptions{From: ref.Hash()})
 	if err != nil {
-		return
+		return nil, "", fmt.Errorf("r.Log: %w", err)
 	}
 
 	commits = make([]Commit, count)
