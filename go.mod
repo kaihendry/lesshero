@@ -5,7 +5,6 @@ go 1.19
 require (
 	github.com/fluxcd/go-git/v5 v5.0.0-20221206140629-ec778c2c37df
 	github.com/go-echarts/go-echarts/v2 v2.2.4
-	github.com/go-git/go-git/v5 v5.5.0
 	github.com/jwalton/gchalk v1.3.0
 )
 
