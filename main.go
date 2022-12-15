@@ -156,12 +156,14 @@ func lessHero(path string) (commits []Commit, gitSrc string, err error) {
 	}
 
 	count := 0
+
 	err = cIter.ForEach(func(c *object.Commit) error {
 		count++
 		return nil
 	})
+
 	if err != nil {
-		return nil, "", fmt.Errorf("cIter.ForEach: %w", err)
+		return nil, "", fmt.Errorf("cIter.ForEach: %w, count: %d", err, count)
 	}
 
 	cIter, err = r.Log(&git.LogOptions{From: ref.Hash()})
