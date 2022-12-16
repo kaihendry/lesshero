@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"runtime"
 	"sort"
 	"sync"
 	"time"
@@ -173,8 +174,9 @@ func lessHero(path string) (commits []Commit, gitSrc string, err error) {
 
 	commits = make([]Commit, count)
 
-	// TODO: Still unstable when > 1 core / fails tests
-	semaphore := make(chan bool, 1)
+	log.Printf("Totalling %d commits", count)
+
+	semaphore := make(chan bool, runtime.NumCPU())
 	wg := sync.WaitGroup{}
 	countIndex := 0
 
@@ -190,7 +192,8 @@ func lessHero(path string) (commits []Commit, gitSrc string, err error) {
 			fStats, err := c.Stats()
 			total := 0
 			if err != nil {
-				log.Fatal(err)
+				// warn and ignore error
+				log.Printf("c.Stats: %v, index: %d, c: %v", err, countIndex, c.Hash.String()[:7])
 			}
 			for _, fStat := range fStats {
 				total += fStat.Addition - fStat.Deletion
@@ -201,6 +204,7 @@ func lessHero(path string) (commits []Commit, gitSrc string, err error) {
 				total:  total,
 				date:   c.Author.When,
 			}
+			// log.Printf("commit time: %v", commits[countIndex].date.Format("2006-01-02 15:04:05"))
 		}(c, countIndex)
 		countIndex++
 		return nil

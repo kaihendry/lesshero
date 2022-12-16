@@ -12,12 +12,8 @@ func BenchmarkHero(b *testing.B) {
 }
 
 func Test_lessHeroOrder(t *testing.T) {
-	type args struct {
-		path string
-	}
 	tests := []struct {
 		name    string
-		args    args
 		wantErr bool
 	}{
 		{
