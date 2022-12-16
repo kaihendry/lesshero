@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1671181763805,
+  "lastUpdate": 1671186628767,
   "repoUrl": "https://github.com/kaihendry/lesshero",
   "entries": {
     "Go Benchmark": [
@@ -1050,6 +1050,36 @@ window.BENCHMARK_DATA = {
             "value": 108350600,
             "unit": "ns/op",
             "extra": "12 times\n2 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hendry@iki.fi",
+            "name": "Kai Hendry",
+            "username": "kaihendry"
+          },
+          "committer": {
+            "email": "hendry@iki.fi",
+            "name": "Kai Hendry",
+            "username": "kaihendry"
+          },
+          "distinct": true,
+          "id": "986a28353723f60f02babc54c7a99c9ee1f046c1",
+          "message": "Fix chart",
+          "timestamp": "2022-12-16T18:28:19+08:00",
+          "tree_id": "0c9ed43d322cbfce16baf60d1c06edd1223565bf",
+          "url": "https://github.com/kaihendry/lesshero/commit/986a28353723f60f02babc54c7a99c9ee1f046c1"
+        },
+        "date": 1671186628223,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkHero",
+            "value": 27079524,
+            "unit": "ns/op",
+            "extra": "37 times\n2 procs"
           }
         ]
       }
