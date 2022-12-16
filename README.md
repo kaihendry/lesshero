@@ -25,3 +25,7 @@ Assuming you a Go runtime installed:
 ## Meta
 
 - https://kaihendry.github.io/lesshero/dev/bench/
+
+## Related projects to help track code complexity
+
+- https://github.com/boyter/scc
