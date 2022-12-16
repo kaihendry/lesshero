@@ -174,7 +174,9 @@ func lessHero(path string) (commits []Commit, gitSrc string, err error) {
 
 	commits = make([]Commit, count)
 
-	log.Printf("Totalling %d commits", count)
+	if os.Getenv("LOG_LEVEL") == "debug" {
+		log.Printf("Totalling %d commits", count)
+	}
 
 	semaphore := make(chan bool, runtime.NumCPU())
 	wg := sync.WaitGroup{}
@@ -204,7 +206,9 @@ func lessHero(path string) (commits []Commit, gitSrc string, err error) {
 				total:  total,
 				date:   c.Author.When,
 			}
-			// log.Printf("commit time: %v", commits[countIndex].date.Format("2006-01-02 15:04:05"))
+			if os.Getenv("LOG_LEVEL") == "debug" {
+				log.Printf("commit time: %v", commits[countIndex].date.Format("2006-01-02 15:04:05"))
+			}
 		}(c, countIndex)
 		countIndex++
 		return nil
