@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"runtime"
 	"sort"
 	"sync"
 	"time"
@@ -13,8 +12,8 @@ import (
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/opts"
 
-	"github.com/fluxcd/go-git/v5"
-	"github.com/fluxcd/go-git/v5/plumbing/object"
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing/object"
 
 	"github.com/jwalton/gchalk"
 )
@@ -36,7 +35,6 @@ type Commit struct {
 func main() {
 	var chartPath string
 	flag.StringVar(&chartPath, "c", "", "path to html chart output")
-	highlight := flag.Bool("hl", true, "highlight")
 	flag.Usage = func() {
 		if commit == "none" {
 			fmt.Fprintf(os.Stderr, "go version -m ~/go/bin/lesshero\n")
@@ -56,14 +54,12 @@ func main() {
 		log.Fatalf("%s: %v", repoPath, err)
 	}
 
-	if *highlight {
-		highlightHero(commits)
-	}
+	highlightHero(commits)
 
 	if chartPath != "" {
 		// calculate running total, starting from the end (beginning) of commits
 		runningTotal := 0
-		for i := len(commits) - 1; i >= 0; i-- {
+		for i := 0; i < len(commits); i++ {
 			runningTotal += commits[i].total
 			commits[i].runningTotal = runningTotal
 		}
@@ -76,20 +72,45 @@ func main() {
 
 func getTimes(commits []Commit) (times []string) {
 	for i := 0; i < len(commits); i++ {
+
 		times = append(times, commits[i].date.Format("2006-01-02"))
+	}
+
+	// log level debug prints the commit time
+	if os.Getenv("LOG_LEVEL") == "debug" {
+		// print first time
+		fmt.Printf("first %s\n", times[0])
+		// print last time
+		fmt.Printf("last %s\n", times[len(times)-1])
 	}
 	return times
 }
 
 func getSlocs(commits []Commit) []opts.LineData {
 	items := make([]opts.LineData, 0)
-	for i := len(commits) - 1; i >= 0; i-- {
+	for i := 0; i < len(commits); i++ {
 		items = append(items, opts.LineData{Value: commits[i].runningTotal, Name: commits[i].hash})
+	}
+	if os.Getenv("LOG_LEVEL") == "debug" {
+		// print first item
+		fmt.Printf("first %d\n", items[0].Value)
+		// print last item
+		fmt.Printf("last %d\n", items[len(items)-1].Value)
 	}
 	return items
 }
 
 func chartHero(commits []Commit, gitSrc, fn string) error {
+
+	if os.Getenv("LOG_LEVEL") == "debug" {
+		// number of commits to show
+		fmt.Printf("Number of commits %d\n", len(commits))
+		// print first commit
+		fmt.Printf("%s %s %d\n", commits[0].date.Format("2006-01-02"), commits[0].hash, commits[0].total)
+		// print last commit
+		fmt.Printf("%s %s %d\n", commits[len(commits)-1].date.Format("2006-01-02"), commits[len(commits)-1].hash, commits[len(commits)-1].total)
+	}
+
 	line := charts.NewLine()
 	line.SetGlobalOptions(
 		charts.WithInitializationOpts(opts.Initialization{PageTitle: "Less Hero"}),
@@ -115,7 +136,7 @@ func chartHero(commits []Commit, gitSrc, fn string) error {
 	line.SetXAxis(getTimes(commits)).AddSeries("SLOC", getSlocs(commits))
 
 	dynamicFn := fmt.Sprintf(
-		`goecharts_%s.on('click', function (params) {   navigator.clipboard.writeText(params.name); console.log(params.name, "copied to clipboard"); });`,
+		`goecharts_%s.on('click', function (params) { navigator.clipboard.writeText(params.name); console.log(params.name, "copied to clipboard"); });`,
 		line.ChartID,
 	)
 	line.AddJSFuncs(dynamicFn)
@@ -178,7 +199,7 @@ func lessHero(path string) (commits []Commit, gitSrc string, err error) {
 		log.Printf("Totalling %d commits", count)
 	}
 
-	semaphore := make(chan bool, runtime.NumCPU())
+	semaphore := make(chan bool, 1)
 	wg := sync.WaitGroup{}
 	countIndex := 0
 
@@ -207,7 +228,7 @@ func lessHero(path string) (commits []Commit, gitSrc string, err error) {
 				date:   c.Author.When,
 			}
 			if os.Getenv("LOG_LEVEL") == "debug" {
-				log.Printf("commit time: %v", commits[countIndex].date.Format("2006-01-02 15:04:05"))
+				log.Printf("commit time: %v total: %d", commits[countIndex].date.Format("2006-01-02"), total)
 			}
 		}(c, countIndex)
 		countIndex++
@@ -216,7 +237,7 @@ func lessHero(path string) (commits []Commit, gitSrc string, err error) {
 
 	wg.Wait()
 
-	// sort commits by ascending date
+	// sort in ascending order
 	sort.Slice(commits, func(i, j int) bool {
 		return commits[i].date.Before(commits[j].date)
 	})
@@ -225,6 +246,7 @@ func lessHero(path string) (commits []Commit, gitSrc string, err error) {
 }
 
 func highlightHero(commits []Commit) {
+
 	for _, commit := range commits {
 		commitId := fmt.Sprintf(
 			"%s %s %s %d %d",
