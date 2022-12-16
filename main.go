@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"runtime"
 	"sort"
 	"sync"
 	"time"
@@ -12,8 +13,8 @@ import (
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/opts"
 
-	"github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/plumbing/object"
+	"github.com/fluxcd/go-git/v5"
+	"github.com/fluxcd/go-git/v5/plumbing/object"
 
 	"github.com/jwalton/gchalk"
 )
@@ -199,7 +200,8 @@ func lessHero(path string) (commits []Commit, gitSrc string, err error) {
 		log.Printf("Totalling %d commits", count)
 	}
 
-	semaphore := make(chan bool, 1)
+	// number of cores
+	semaphore := make(chan bool, runtime.NumCPU())
 	wg := sync.WaitGroup{}
 	countIndex := 0
 
