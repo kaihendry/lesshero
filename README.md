@@ -29,3 +29,4 @@ Assuming you a Go runtime installed:
 ## Related projects to help track code complexity
 
 - https://github.com/boyter/scc
+- https://github.com/kaihendry/graphsloc
