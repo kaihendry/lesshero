@@ -10,12 +10,9 @@ dockers:
 
 brews:
   - name: lesshero
-    tap:
+    repository:
       owner: kaihendry
       name: lesshero
-      branch: homebrew
-    commit_msg_template: "Brew formula update for {{ .ProjectName }} version {{ .Tag }}"
-    folder: Formula
     homepage: "https://github.com/kaihendry/lesshero"
     description: Highlight refactors and efforts to keep code base lean
     license: "MIT"
