@@ -5,21 +5,21 @@
 class Lesshero < Formula
   desc "Highlight refactors and efforts to keep code base lean"
   homepage "https://github.com/kaihendry/lesshero"
-  version "0.0.6"
+  version "0.0.7"
   license "MIT"
 
   on_macos do
-    if Hardware::CPU.arm?
-      url "https://github.com/kaihendry/lesshero/releases/download/v0.0.6/lesshero_0.0.6_darwin_arm64.tar.gz"
-      sha256 "401dd44ee8b61e55230a2d1fea74fdd715fd0242a4ee5313746199bc1c9b3c24"
+    if Hardware::CPU.intel?
+      url "https://github.com/kaihendry/lesshero/releases/download/v0.0.7/lesshero_0.0.7_darwin_amd64.tar.gz"
+      sha256 "a0051474d04a03d461050a7ef845c3df7590aef8e09792a0938ce3276f49fa2f"
 
       def install
         bin.install "lesshero"
       end
     end
-    if Hardware::CPU.intel?
-      url "https://github.com/kaihendry/lesshero/releases/download/v0.0.6/lesshero_0.0.6_darwin_amd64.tar.gz"
-      sha256 "8b1509601b6099d2e0fda020cbbe71e9b22745e7ebdbd6c8d97f8e8f08156e92"
+    if Hardware::CPU.arm?
+      url "https://github.com/kaihendry/lesshero/releases/download/v0.0.7/lesshero_0.0.7_darwin_arm64.tar.gz"
+      sha256 "25ba0300e5be9599e31ea5d682fce9f0a67214057f700431dc84e7c1ca46684b"
 
       def install
         bin.install "lesshero"
@@ -28,17 +28,17 @@ class Lesshero < Formula
   end
 
   on_linux do
-    if Hardware::CPU.arm? && Hardware::CPU.is_64_bit?
-      url "https://github.com/kaihendry/lesshero/releases/download/v0.0.6/lesshero_0.0.6_linux_arm64.tar.gz"
-      sha256 "3b47bcf0464f63e47b3f80606057341078d01c9634a8685875a884297d4649ec"
+    if Hardware::CPU.intel?
+      url "https://github.com/kaihendry/lesshero/releases/download/v0.0.7/lesshero_0.0.7_linux_amd64.tar.gz"
+      sha256 "8701120114e1b276d8d67db561e11ce9b0a77a70c377a7d58d961b42dcb6dda5"
 
       def install
         bin.install "lesshero"
       end
     end
-    if Hardware::CPU.intel?
-      url "https://github.com/kaihendry/lesshero/releases/download/v0.0.6/lesshero_0.0.6_linux_amd64.tar.gz"
-      sha256 "7aac925ebcd6e79f433a2657ca6a5bfad946f1eb8edc5c7eef729b2bc4f7db21"
+    if Hardware::CPU.arm? && Hardware::CPU.is_64_bit?
+      url "https://github.com/kaihendry/lesshero/releases/download/v0.0.7/lesshero_0.0.7_linux_arm64.tar.gz"
+      sha256 "8db6419f581757d511a0379a88e5d55242da1cec5a423db1ce235ea6d20afe66"
 
       def install
         bin.install "lesshero"
