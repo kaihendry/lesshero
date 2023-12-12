@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"runtime"
 	"sort"
@@ -20,10 +20,22 @@ import (
 )
 
 var (
-	version  = "dev"
-	commit   = "none"
 	repoPath = "." // pwd is default
 )
+
+func getLogger(logLevel string) *slog.Logger {
+	levelVar := slog.LevelVar{}
+
+	if logLevel != "" {
+		if err := levelVar.UnmarshalText([]byte(logLevel)); err != nil {
+			panic(fmt.Sprintf("Invalid log level %s: %v", logLevel, err))
+		}
+	}
+
+	return slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
+		Level: levelVar.Level(),
+	}))
+}
 
 type Commit struct {
 	hash         string
@@ -34,16 +46,10 @@ type Commit struct {
 }
 
 func main() {
+	slog.SetDefault(getLogger(os.Getenv("LOGLEVEL")))
+
 	var chartPath string
 	flag.StringVar(&chartPath, "c", "", "path to html chart output")
-	flag.Usage = func() {
-		if commit == "none" {
-			fmt.Fprintf(os.Stderr, "go version -m ~/go/bin/lesshero\n")
-		} else {
-			fmt.Fprintf(os.Stderr, "https://github.com/kaihendry/lesshero %s (%s)\n", version, commit)
-		}
-		flag.PrintDefaults()
-	}
 	flag.Parse()
 
 	if flag.Arg(0) != "" {
@@ -52,7 +58,8 @@ func main() {
 
 	commits, gitSrc, err := lessHero(repoPath)
 	if err != nil {
-		log.Fatalf("%s: %v", repoPath, err)
+		slog.Error("lessHero", "err", err, "repoPath", repoPath)
+		return
 	}
 
 	highlightHero(commits)
@@ -66,7 +73,8 @@ func main() {
 		}
 		err = chartHero(commits, gitSrc, chartPath)
 		if err != nil {
-			log.Fatal(err)
+			slog.Error("charthero", "err", err)
+			return
 		}
 	}
 }
@@ -78,12 +86,10 @@ func getTimes(commits []Commit) (times []string) {
 	}
 
 	// log level debug prints the commit time
-	if os.Getenv("LOG_LEVEL") == "debug" {
-		// print first time
-		fmt.Printf("first %s\n", times[0])
-		// print last time
-		fmt.Printf("last %s\n", times[len(times)-1])
-	}
+	// print first time
+	slog.Debug("first", "time", times[0])
+	// print last time
+	slog.Debug("last", "time", times[len(times)-1])
 	return times
 }
 
@@ -92,25 +98,18 @@ func getSlocs(commits []Commit) []opts.LineData {
 	for i := 0; i < len(commits); i++ {
 		items = append(items, opts.LineData{Value: commits[i].runningTotal, Name: commits[i].hash})
 	}
-	if os.Getenv("LOG_LEVEL") == "debug" {
-		// print first item
-		fmt.Printf("first %d\n", items[0].Value)
-		// print last item
-		fmt.Printf("last %d\n", items[len(items)-1].Value)
-	}
+	// print first item
+	slog.Debug("first", "item", items[0].Value)
+	// print last item
+	slog.Debug("last", "item", items[len(items)-1].Value)
 	return items
 }
 
 func chartHero(commits []Commit, gitSrc, fn string) error {
 
-	if os.Getenv("LOG_LEVEL") == "debug" {
-		// number of commits to show
-		fmt.Printf("Number of commits %d\n", len(commits))
-		// print first commit
-		fmt.Printf("%s %s %d\n", commits[0].date.Format("2006-01-02"), commits[0].hash, commits[0].total)
-		// print last commit
-		fmt.Printf("%s %s %d\n", commits[len(commits)-1].date.Format("2006-01-02"), commits[len(commits)-1].hash, commits[len(commits)-1].total)
-	}
+	slog.Debug("commits", "count", len(commits))
+	slog.Debug("first", "date", commits[0].date.Format("2006-01-02"), "hash", commits[0].hash, "total", commits[0].total)
+	slog.Debug("last", "date", commits[len(commits)-1].date.Format("2006-01-02"), "hash", commits[len(commits)-1].hash, "total", commits[len(commits)-1].total)
 
 	line := charts.NewLine()
 	line.SetGlobalOptions(
@@ -197,7 +196,7 @@ func lessHero(path string) (commits []Commit, gitSrc string, err error) {
 	commits = make([]Commit, count)
 
 	if os.Getenv("LOG_LEVEL") == "debug" {
-		log.Printf("Totalling %d commits", count)
+		slog.Debug("total", "commits", count)
 	}
 
 	// number of cores
@@ -217,8 +216,7 @@ func lessHero(path string) (commits []Commit, gitSrc string, err error) {
 			fStats, err := c.Stats()
 			total := 0
 			if err != nil {
-				// warn and ignore error
-				log.Printf("c.Stats: %v, index: %d, c: %v", err, countIndex, c.Hash.String()[:7])
+				slog.Warn("upload failed", "err", err, "index", countIndex, "commit", c.Hash.String()[:7])
 			}
 			for _, fStat := range fStats {
 				total += fStat.Addition - fStat.Deletion
@@ -229,9 +227,7 @@ func lessHero(path string) (commits []Commit, gitSrc string, err error) {
 				total:  total,
 				date:   c.Author.When,
 			}
-			if os.Getenv("LOG_LEVEL") == "debug" {
-				log.Printf("commit time: %v total: %d", commits[countIndex].date.Format("2006-01-02"), total)
-			}
+			slog.Debug("commit", "index", countIndex, "commit", c.Hash.String()[:7], "total", total)
 		}(c, countIndex)
 		countIndex++
 		return nil
