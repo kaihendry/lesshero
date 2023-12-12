@@ -145,8 +145,7 @@ func chartHero(commits []Commit, gitSrc, fn string) error {
 	if err != nil {
 		return err
 	}
-	line.Render(f)
-	return nil
+	return line.Render(f)
 }
 
 func lessHero(path string) (commits []Commit, gitSrc string, err error) {
