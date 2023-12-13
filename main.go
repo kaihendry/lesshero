@@ -129,8 +129,11 @@ func chartHero(commits []Commit, gitSrc, fn string) error {
 			Name: "Code Count",
 		}),
 		charts.WithXAxisOpts(opts.XAxis{
+			Type: "category",
+			Data: getTimes(commits),
 			AxisLabel: &opts.AxisLabel{
 				Rotate: 20,
+				Show:   true,
 			},
 		}),
 	)
