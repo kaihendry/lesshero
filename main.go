@@ -123,7 +123,8 @@ func chartHero(commits []Commit, gitSrc, fn string) error {
 			Show:      true,
 			Formatter: "{b}",
 		}),
-		charts.WithTitleOpts(opts.Title{Title: gitSrc}),
+		charts.WithTitleOpts(opts.Title{Title: gitSrc, Link: "https://github.com/kaihendry/lesshero"}),
+		charts.WithLegendOpts(opts.Legend{Show: false}),
 		charts.WithYAxisOpts(opts.YAxis{
 			Name: "Code Count",
 		}),
@@ -133,6 +134,7 @@ func chartHero(commits []Commit, gitSrc, fn string) error {
 			},
 		}),
 	)
+
 	line.SetXAxis(getTimes(commits)).AddSeries("SLOC", getSlocs(commits))
 
 	dynamicFn := fmt.Sprintf(
