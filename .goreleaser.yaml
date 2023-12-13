@@ -7,12 +7,3 @@ builds:
 dockers:
   - image_templates:
       - "hendry/{{.ProjectName}}"
-
-brews:
-  - name: lesshero
-    repository:
-      owner: kaihendry
-      name: lesshero
-    homepage: "https://github.com/kaihendry/lesshero"
-    description: Highlight refactors and efforts to keep code base lean
-    license: "MIT"
