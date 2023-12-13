@@ -5,12 +5,6 @@ import (
 	"testing"
 )
 
-func BenchmarkHero(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		lessHero(".")
-	}
-}
-
 func Test_lessHeroOrder(t *testing.T) {
 	tests := []struct {
 		name    string
