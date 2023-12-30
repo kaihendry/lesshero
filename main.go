@@ -9,6 +9,7 @@ import (
 	"sort"
 	"sync"
 	"time"
+    "strconv"
 
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/opts"
@@ -71,7 +72,7 @@ func main() {
 			runningTotal += commits[i].total
 			commits[i].runningTotal = runningTotal
 		}
-		err = chartHero(commits, gitSrc, chartPath)
+		err = chartHero(commits, gitSrc, chartPath, runningTotal)
 		if err != nil {
 			slog.Error("charthero", "err", err)
 			return
@@ -105,8 +106,7 @@ func getSlocs(commits []Commit) []opts.LineData {
 	return items
 }
 
-func chartHero(commits []Commit, gitSrc, fn string) error {
-
+func chartHero(commits []Commit, gitSrc, fn string, total int) error {
 	slog.Debug("commits", "count", len(commits))
 	slog.Debug("first", "date", commits[0].date.Format("2006-01-02"), "hash", commits[0].hash, "total", commits[0].total)
 	slog.Debug("last", "date", commits[len(commits)-1].date.Format("2006-01-02"), "hash", commits[len(commits)-1].hash, "total", commits[len(commits)-1].total)
@@ -126,7 +126,7 @@ func chartHero(commits []Commit, gitSrc, fn string) error {
 		charts.WithTitleOpts(opts.Title{Title: gitSrc, Link: "https://github.com/kaihendry/lesshero"}),
 		charts.WithLegendOpts(opts.Legend{Show: false}),
 		charts.WithYAxisOpts(opts.YAxis{
-			Name: "Code Count",
+            Name: "Code Count: " + strconv.Itoa(total),
 		}),
 		charts.WithXAxisOpts(opts.XAxis{
 			Type: "category",
@@ -252,7 +252,6 @@ func lessHero(path string) (commits []Commit, gitSrc string, err error) {
 }
 
 func highlightHero(commits []Commit) {
-
 	for _, commit := range commits {
 		commitId := fmt.Sprintf(
 			"%s %s %s %d %d",
