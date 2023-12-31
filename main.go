@@ -7,9 +7,9 @@ import (
 	"os"
 	"runtime"
 	"sort"
+    "strconv"
 	"sync"
 	"time"
-    "strconv"
 
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/opts"
@@ -18,6 +18,7 @@ import (
 	"github.com/fluxcd/go-git/v5/plumbing/object"
 
 	"github.com/jwalton/gchalk"
+    "github.com/pkg/browser"
 )
 
 var (
@@ -50,7 +51,9 @@ func main() {
 	slog.SetDefault(getLogger(os.Getenv("LOGLEVEL")))
 
 	var chartPath string
+    var autoOpenChart bool
 	flag.StringVar(&chartPath, "c", "", "path to html chart output")
+    flag.BoolVar(&autoOpenChart, "b", false, "auto open chart in default browser")
 	flag.Parse()
 
 	if flag.Arg(0) != "" {
@@ -78,11 +81,18 @@ func main() {
 			return
 		}
 	}
+
+    if autoOpenChart {
+        err = browser.OpenFile(chartPath)
+        if err != nil {
+            slog.Error("charthero open", "err", err)
+            return
+        }
+    }
 }
 
 func getTimes(commits []Commit) (times []string) {
 	for i := 0; i < len(commits); i++ {
-
 		times = append(times, commits[i].date.Format("2006-01-02"))
 	}
 

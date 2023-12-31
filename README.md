@@ -13,7 +13,7 @@ a diet!
 
 ## Install
 
-Assuming you a Go runtime installed:
+Assuming you have a Go runtime installed:
 
     go install github.com/kaihendry/lesshero@latest
     lesshero -c chart.html /path/to/a/full/git/checkout
