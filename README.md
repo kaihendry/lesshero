@@ -19,7 +19,9 @@ Assuming you have a Go runtime installed:
     lesshero -c chart.html /path/to/a/full/git/checkout
 
 For more options
-    lesshero -h
+```
+lesshero -h
+```
 
 ### Docker
 
