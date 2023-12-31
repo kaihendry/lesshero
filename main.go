@@ -7,7 +7,7 @@ import (
 	"os"
 	"runtime"
 	"sort"
-    "strconv"
+	"strconv"
 	"sync"
 	"time"
 
@@ -18,7 +18,7 @@ import (
 	"github.com/fluxcd/go-git/v5/plumbing/object"
 
 	"github.com/jwalton/gchalk"
-    "github.com/pkg/browser"
+	"github.com/pkg/browser"
 )
 
 var (
@@ -50,13 +50,13 @@ type Commit struct {
 func main() {
 	slog.SetDefault(getLogger(os.Getenv("LOGLEVEL")))
 
-    var chartPath string
-    var autoOpenChart bool
-    var showCommitsHighlight bool
+	var chartPath string
+	var autoOpenChart bool
+	var showCommitsHighlight bool
 
 	flag.StringVar(&chartPath, "c", "chart.html", "path to html chart output")
-    flag.BoolVar(&autoOpenChart, "b", false, "auto open chart in default browser")
-    flag.BoolVar(&showCommitsHighlight, "l", false, "show list of commits highlighted based on code count change")
+	flag.BoolVar(&autoOpenChart, "b", false, "auto open chart in default browser")
+	flag.BoolVar(&showCommitsHighlight, "l", false, "show list of commits highlighted based on code count change")
 	flag.Parse()
 
 	if flag.Arg(0) != "" {
@@ -66,33 +66,33 @@ func main() {
 	commits, gitSrc, err := lessHero(repoPath)
 	if err != nil {
 		slog.Error("lessHero", "err", err, "repoPath", repoPath)
-        fmt.Println(" - Directory", repoPath, "is not a git repository!")
+		fmt.Println(" - Directory", repoPath, "is not a git repository!")
 		return
 	}
 
-    if showCommitsHighlight {
-        highlightHero(commits)
-    }
+	if showCommitsHighlight {
+		highlightHero(commits)
+	}
 
-    // calculate running total, starting from the end (beginning) of commits
-    runningTotal := 0
-    for i := 0; i < len(commits); i++ {
-        runningTotal += commits[i].total
-        commits[i].runningTotal = runningTotal
-    }
-    err = chartHero(commits, gitSrc, chartPath, runningTotal)
-    if err != nil {
-        slog.Error("charthero", "err", err)
-        return
-    }
+	// calculate running total, starting from the end (beginning) of commits
+	runningTotal := 0
+	for i := 0; i < len(commits); i++ {
+		runningTotal += commits[i].total
+		commits[i].runningTotal = runningTotal
+	}
+	err = chartHero(commits, gitSrc, chartPath, runningTotal)
+	if err != nil {
+		slog.Error("charthero", "err", err)
+		return
+	}
 
-    if autoOpenChart {
-        err = browser.OpenFile(chartPath)
-        if err != nil {
-            slog.Error("charthero open", "err", err)
-            return
-        }
-    }
+	if autoOpenChart {
+		err = browser.OpenFile(chartPath)
+		if err != nil {
+			slog.Error("charthero open", "err", err)
+			return
+		}
+	}
 }
 
 func getTimes(commits []Commit) (times []string) {
@@ -135,12 +135,12 @@ func chartHero(commits []Commit, gitSrc, fn string, total int) error {
 			Trigger:   "axis",
 			TriggerOn: "mousemove|click",
 			Show:      true,
-            Formatter: "{b}: {c}",
+			Formatter: "{b}: {c}",
 		}),
 		charts.WithTitleOpts(opts.Title{Title: gitSrc, Link: "https://github.com/kaihendry/lesshero"}),
 		charts.WithLegendOpts(opts.Legend{Show: false}),
 		charts.WithYAxisOpts(opts.YAxis{
-            Name: "Code Count: " + strconv.Itoa(total),
+			Name: "Code Count: " + strconv.Itoa(total),
 		}),
 		charts.WithXAxisOpts(opts.XAxis{
 			Type: "category",
@@ -148,7 +148,7 @@ func chartHero(commits []Commit, gitSrc, fn string, total int) error {
 			AxisLabel: &opts.AxisLabel{
 				Rotate: 20,
 				Show:   true,
-                //Color:  "green",
+				//Color:  "green",
 			},
 		}),
 	)
