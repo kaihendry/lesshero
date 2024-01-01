@@ -120,6 +120,18 @@ func getSlocs(commits []Commit) []opts.LineData {
 	return items
 }
 
+func getDecSlocs(commits []Commit) []opts.LineData {
+	items := make([]opts.LineData, 0)
+	for i := 0; i < len(commits); i++ {
+		if commits[i].total < 0 || i < len(commits)-1 && commits[i+1].total < 0 {
+			items = append(items, opts.LineData{Value: commits[i].runningTotal, Name: commits[i].hash})
+		} else {
+			items = append(items, opts.LineData{Value: "-", Name: commits[i].hash})
+		}
+	}
+	return items
+}
+
 func chartHero(commits []Commit, gitSrc, fn string, total int) error {
 	slog.Debug("commits", "count", len(commits))
 	slog.Debug("first", "date", commits[0].date.Format("2006-01-02"), "hash", commits[0].hash, "total", commits[0].total)
@@ -153,7 +165,7 @@ func chartHero(commits []Commit, gitSrc, fn string, total int) error {
 		}),
 	)
 
-	line.SetXAxis(getTimes(commits)).AddSeries("SLOC", getSlocs(commits))
+	line.SetXAxis(getTimes(commits)).AddSeries("SLOC", getSlocs(commits), charts.WithLineStyleOpts(opts.LineStyle{Color: "red"})).AddSeries("SLOC", getDecSlocs(commits), charts.WithLineStyleOpts(opts.LineStyle{Color: "green"}))
 
 	dynamicFn := fmt.Sprintf(
 		`goecharts_%s.on('click', function (params) { navigator.clipboard.writeText(params.name); console.log(params.name, "copied to clipboard"); });`,
