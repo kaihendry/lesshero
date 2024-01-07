@@ -6,6 +6,7 @@ require (
 	github.com/fluxcd/go-git/v5 v5.0.0-20221219190809-2e5c9d01cfc4
 	github.com/go-echarts/go-echarts/v2 v2.3.2
 	github.com/jwalton/gchalk v1.3.0
+	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8
 )
 
 require (

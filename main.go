@@ -7,6 +7,7 @@ import (
 	"os"
 	"runtime"
 	"sort"
+	"strconv"
 	"sync"
 	"time"
 
@@ -17,6 +18,7 @@ import (
 	"github.com/fluxcd/go-git/v5/plumbing/object"
 
 	"github.com/jwalton/gchalk"
+	"github.com/pkg/browser"
 )
 
 var (
@@ -49,7 +51,12 @@ func main() {
 	slog.SetDefault(getLogger(os.Getenv("LOGLEVEL")))
 
 	var chartPath string
-	flag.StringVar(&chartPath, "c", "", "path to html chart output")
+	var autoOpenChart bool
+	var showCommitsHighlight bool
+
+	flag.StringVar(&chartPath, "c", "chart.html", "path to html chart output")
+	flag.BoolVar(&autoOpenChart, "b", false, "auto open chart in default browser")
+	flag.BoolVar(&showCommitsHighlight, "l", false, "show list of commits highlighted based on code count change")
 	flag.Parse()
 
 	if flag.Arg(0) != "" {
@@ -59,21 +66,30 @@ func main() {
 	commits, gitSrc, err := lessHero(repoPath)
 	if err != nil {
 		slog.Error("lessHero", "err", err, "repoPath", repoPath)
+		fmt.Println(" - Directory", repoPath, "is not a git repository!")
 		return
 	}
 
-	highlightHero(commits)
+	if showCommitsHighlight {
+		highlightHero(commits)
+	}
 
-	if chartPath != "" {
-		// calculate running total, starting from the end (beginning) of commits
-		runningTotal := 0
-		for i := 0; i < len(commits); i++ {
-			runningTotal += commits[i].total
-			commits[i].runningTotal = runningTotal
-		}
-		err = chartHero(commits, gitSrc, chartPath)
+	// calculate running total, starting from the end (beginning) of commits
+	runningTotal := 0
+	for i := 0; i < len(commits); i++ {
+		runningTotal += commits[i].total
+		commits[i].runningTotal = runningTotal
+	}
+	err = chartHero(commits, gitSrc, chartPath, runningTotal)
+	if err != nil {
+		slog.Error("charthero", "err", err)
+		return
+	}
+
+	if autoOpenChart {
+		err = browser.OpenFile(chartPath)
 		if err != nil {
-			slog.Error("charthero", "err", err)
+			slog.Error("charthero open", "err", err)
 			return
 		}
 	}
@@ -81,7 +97,6 @@ func main() {
 
 func getTimes(commits []Commit) (times []string) {
 	for i := 0; i < len(commits); i++ {
-
 		times = append(times, commits[i].date.Format("2006-01-02"))
 	}
 
@@ -105,8 +120,19 @@ func getSlocs(commits []Commit) []opts.LineData {
 	return items
 }
 
-func chartHero(commits []Commit, gitSrc, fn string) error {
+func getDecSlocs(commits []Commit) []opts.LineData {
+	items := make([]opts.LineData, 0)
+	for i := 0; i < len(commits); i++ {
+		if commits[i].total < 0 || i < len(commits)-1 && commits[i+1].total < 0 {
+			items = append(items, opts.LineData{Value: commits[i].runningTotal, Name: commits[i].hash})
+		} else {
+			items = append(items, opts.LineData{Value: "-", Name: commits[i].hash})
+		}
+	}
+	return items
+}
 
+func chartHero(commits []Commit, gitSrc, fn string, total int) error {
 	slog.Debug("commits", "count", len(commits))
 	slog.Debug("first", "date", commits[0].date.Format("2006-01-02"), "hash", commits[0].hash, "total", commits[0].total)
 	slog.Debug("last", "date", commits[len(commits)-1].date.Format("2006-01-02"), "hash", commits[len(commits)-1].hash, "total", commits[len(commits)-1].total)
@@ -121,12 +147,12 @@ func chartHero(commits []Commit, gitSrc, fn string) error {
 			Trigger:   "axis",
 			TriggerOn: "mousemove|click",
 			Show:      true,
-			Formatter: "{b}",
+			Formatter: "{b}: {c}",
 		}),
 		charts.WithTitleOpts(opts.Title{Title: gitSrc, Link: "https://github.com/kaihendry/lesshero"}),
 		charts.WithLegendOpts(opts.Legend{Show: false}),
 		charts.WithYAxisOpts(opts.YAxis{
-			Name: "Code Count",
+			Name: "Code Count: " + strconv.Itoa(total),
 		}),
 		charts.WithXAxisOpts(opts.XAxis{
 			Type: "category",
@@ -134,11 +160,12 @@ func chartHero(commits []Commit, gitSrc, fn string) error {
 			AxisLabel: &opts.AxisLabel{
 				Rotate: 20,
 				Show:   true,
+				//Color:  "green",
 			},
 		}),
 	)
 
-	line.SetXAxis(getTimes(commits)).AddSeries("SLOC", getSlocs(commits))
+	line.SetXAxis(getTimes(commits)).AddSeries("SLOC", getSlocs(commits), charts.WithLineStyleOpts(opts.LineStyle{Color: "red"})).AddSeries("SLOC", getDecSlocs(commits), charts.WithLineStyleOpts(opts.LineStyle{Color: "green"}))
 
 	dynamicFn := fmt.Sprintf(
 		`goecharts_%s.on('click', function (params) { navigator.clipboard.writeText(params.name); console.log(params.name, "copied to clipboard"); });`,
@@ -252,7 +279,6 @@ func lessHero(path string) (commits []Commit, gitSrc string, err error) {
 }
 
 func highlightHero(commits []Commit) {
-
 	for _, commit := range commits {
 		commitId := fmt.Sprintf(
 			"%s %s %s %d %d",
