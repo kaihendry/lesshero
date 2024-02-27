@@ -1,4 +1,3 @@
-// bench mark lessHero
 package main
 
 import (
@@ -22,10 +21,15 @@ func Test_lessHeroOrder(t *testing.T) {
 				t.Errorf("lessHero() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			// check wantCommits are in order
+
+			// print the commits hashes
+			for _, c := range gotCommits {
+				t.Log(c.hash)
+			}
+
 			for i := 0; i < len(gotCommits)-1; i++ {
 				if gotCommits[i].date.After(gotCommits[i+1].date) {
-					t.Errorf("lessHero() commits not in order")
+					t.Errorf("lessHero() = %v %v, is not after %v %v", gotCommits[i].date, gotCommits[i].hash, gotCommits[i+1].date, gotCommits[i+1].hash)
 				}
 			}
 		})

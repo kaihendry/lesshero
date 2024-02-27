@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"os"
 	"runtime"
-	"sort"
+	"slices"
 	"strconv"
 	"sync"
 	"time"
@@ -207,7 +207,7 @@ func lessHero(path string) (commits []Commit, gitSrc string, err error) {
 		return nil, "", fmt.Errorf("r.Head: %w", err)
 	}
 
-	cIter, err := r.Log(&git.LogOptions{From: ref.Hash()})
+	cIter, err := r.Log(&git.LogOptions{From: ref.Hash(), Order: git.LogOrderCommitterTime})
 	if err != nil {
 		return nil, "", fmt.Errorf("r.Log: %w", err)
 	}
@@ -223,7 +223,7 @@ func lessHero(path string) (commits []Commit, gitSrc string, err error) {
 		return nil, "", fmt.Errorf("cIter.ForEach: %w, count: %d", err, count)
 	}
 
-	cIter, err = r.Log(&git.LogOptions{From: ref.Hash()})
+	cIter, err = r.Log(&git.LogOptions{From: ref.Hash(), Order: git.LogOrderCommitterTime})
 	if err != nil {
 		return nil, "", fmt.Errorf("r.Log: %w", err)
 	}
@@ -270,10 +270,7 @@ func lessHero(path string) (commits []Commit, gitSrc string, err error) {
 
 	wg.Wait()
 
-	// sort in ascending order
-	sort.Slice(commits, func(i, j int) bool {
-		return commits[i].date.Before(commits[j].date)
-	})
+	slices.Reverse(commits)
 
 	return
 }
