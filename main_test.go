@@ -22,9 +22,12 @@ func Test_lessHeroOrder(t *testing.T) {
 				return
 			}
 
-			// print the commits hashes
 			for _, c := range gotCommits {
 				t.Log(c.hash)
+			}
+
+			if gotCommits[0].hash != "bbed8b3" {
+				t.Errorf("lessHero() = %v, want %v", gotCommits[0].hash, "bbed8b3")
 			}
 
 			for i := 0; i < len(gotCommits)-1; i++ {
