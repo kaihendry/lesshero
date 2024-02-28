@@ -1,4 +1,4 @@
-FROM golang:1.22 AS build-env
+FROM golang:latest AS build-env
 
 RUN mkdir -p /workspace
 WORKDIR /workspace
@@ -6,10 +6,6 @@ WORKDIR /workspace
 ENV GOOS=linux
 ENV GOARCH=amd64
 ENV CGO_ENABLED=0
-
-COPY go.mod go.sum ./
-
-RUN go mod download
 
 COPY . .
 
@@ -19,4 +15,4 @@ FROM scratch
 
 COPY --from=build-env /workspace/lesshero /
 
-ENTRYPOINT ["/lesshero", "-c", "lesshero.html"]
+ENTRYPOINT ["/lesshero", "-o", "lesshero.html"]

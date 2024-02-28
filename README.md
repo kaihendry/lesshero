@@ -18,7 +18,7 @@ a diet!
 Assuming you have a Go runtime installed:
 
     go install github.com/kaihendry/lesshero@latest
-    lesshero -c chart.html /path/to/a/full/git/checkout
+    lesshero -o chart.html /path/to/a/full/git/checkout
 
 For more options:
 ```
@@ -27,11 +27,7 @@ lesshero -h
 
 ### Docker
 
-    docker run -e FORCE_COLOR=1 -v $(pwd):/repo hendry/lesshero -c /repo/chart.html /repo
-
-## Meta
-
-- https://kaihendry.github.io/lesshero/dev/bench/
+    docker run -e FORCE_COLOR=1 -v $(pwd):/repo hendry/lesshero -o /repo/chart.html /repo
 
 ## Related projects to help track code complexity
 

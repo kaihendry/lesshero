@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"os"
 	"runtime"
+	"runtime/debug"
 	"slices"
 	"strconv"
 	"sync"
@@ -53,14 +54,32 @@ func main() {
 	var chartPath string
 	var autoOpenChart bool
 	var showCommitsHighlight bool
+	var showVersion bool
 
-	flag.StringVar(&chartPath, "c", "lesshero.html", "path to html chart output")
+	version, dirty := GitCommit()
+
+	flag.StringVar(&chartPath, "o", "lesshero.html", "path to html chart output")
 	flag.BoolVar(&autoOpenChart, "b", false, "auto open chart in default browser")
 	flag.BoolVar(&showCommitsHighlight, "l", true, "show list of commits highlighted based on code count change")
+	flag.BoolVar(&showVersion, "v", false, "show version")
+
+	flag.Usage = func() {
+		fmt.Fprintf(flag.CommandLine.Output(), "Usage of %s:\n", os.Args[0])
+		fmt.Fprintf(flag.CommandLine.Output(), "  %s [options] [git repo path]\n", os.Args[0])
+		flag.PrintDefaults()
+		fmt.Fprintf(flag.CommandLine.Output(), "\nhttps://github.com/kaihendry/lesshero/commit/%s\n", version)
+	}
 	flag.Parse()
 
 	if flag.Arg(0) != "" {
 		repoPath = flag.Arg(0)
+	}
+
+	slog.Debug("version", "commit", version, "dirty", dirty)
+
+	if showVersion {
+		fmt.Println(version)
+		return
 	}
 
 	commits, gitSrc, err := lessHero(repoPath)
@@ -298,4 +317,20 @@ func highlightHero(commits []Commit) {
 			fmt.Println(gchalk.Yellow(commitId))
 		}
 	}
+}
+
+func GitCommit() (commit string, dirty bool) {
+	bi, ok := debug.ReadBuildInfo()
+	if !ok {
+		return "", false
+	}
+	for _, setting := range bi.Settings {
+		switch setting.Key {
+		case "vcs.modified":
+			dirty = setting.Value == "true"
+		case "vcs.revision":
+			commit = setting.Value
+		}
+	}
+	return
 }
