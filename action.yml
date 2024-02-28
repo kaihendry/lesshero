@@ -1,0 +1,6 @@
+# action.yml
+name: 'Less Hero'
+description: 'Create lesshero.html to publish SLOC graph'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'

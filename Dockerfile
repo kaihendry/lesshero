@@ -1,3 +1,5 @@
 FROM scratch
-ENTRYPOINT ["/lesshero"]
+
 COPY lesshero /
+
+ENTRYPOINT ["/lesshero", "-c", "lesshero.html"]

@@ -54,7 +54,7 @@ func main() {
 	var autoOpenChart bool
 	var showCommitsHighlight bool
 
-	flag.StringVar(&chartPath, "c", "chart.html", "path to html chart output")
+	flag.StringVar(&chartPath, "c", "lesshero.html", "path to html chart output")
 	flag.BoolVar(&autoOpenChart, "b", false, "auto open chart in default browser")
 	flag.BoolVar(&showCommitsHighlight, "l", true, "show list of commits highlighted based on code count change")
 	flag.Parse()
