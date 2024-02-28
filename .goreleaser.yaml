@@ -7,3 +7,4 @@ builds:
 dockers:
   - image_templates:
       - "hendry/{{.ProjectName}}"
+    dockerfile: goreleaser.Dockerfile
