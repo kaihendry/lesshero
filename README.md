@@ -2,7 +2,7 @@
 
 [![Less Hero explainer](http://img.youtube.com/vi/Zlsq9B6KdB0/0.jpg)](http://www.youtube.com/watch?v=Zlsq9B6KdB0 "Highlighting less code")
 
-Demo: https://s.natalian.org/2024-01-07/chart.html of a checkout of https://git.suckless.org/dwm/
+Demo: https://kaihendry.github.io/scc/
 
 ## Goal: Highlight efforts to reduce bloat
 
