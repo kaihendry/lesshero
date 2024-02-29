@@ -1,6 +1,7 @@
 # action.yml
 name: 'Less Hero'
 description: Creates lesshero.html, a SLOC graph of your project
+icon: activity
 runs:
   using: 'docker'
   image: 'Dockerfile'
