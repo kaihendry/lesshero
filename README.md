@@ -36,6 +36,8 @@ lesshero -h
 
 ## Create a SLOC chart via a GitHub action
 
+First you need to enable Github Pages with the source of Github Actions (BETA).
+
 ```yaml
 name: Create a Less Hero SLOC chart
 
