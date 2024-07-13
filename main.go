@@ -165,11 +165,11 @@ func chartHero(commits []Commit, gitSrc, fn string, total int) error {
 		charts.WithTooltipOpts(opts.Tooltip{
 			Trigger:   "axis",
 			TriggerOn: "mousemove|click",
-			Show:      true,
+			Show:      opts.Bool(true),
 			Formatter: "{b}: {c}",
 		}),
 		charts.WithTitleOpts(opts.Title{Title: gitSrc, Link: "https://github.com/kaihendry/lesshero"}),
-		charts.WithLegendOpts(opts.Legend{Show: false}),
+		charts.WithLegendOpts(opts.Legend{Show: opts.Bool(false)}),
 		charts.WithYAxisOpts(opts.YAxis{
 			Name: "Code Count: " + strconv.Itoa(total),
 		}),
@@ -178,8 +178,7 @@ func chartHero(commits []Commit, gitSrc, fn string, total int) error {
 			Data: getTimes(commits),
 			AxisLabel: &opts.AxisLabel{
 				Rotate: 20,
-				Show:   true,
-				//Color:  "green",
+				Show:   opts.Bool(true),
 			},
 		}),
 	)
