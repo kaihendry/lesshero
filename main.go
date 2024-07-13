@@ -127,9 +127,9 @@ func main() {
 			}
 		}
 
-		// for i := 0; i < len(commits); i++ {
-		// 	slog.Debug("commit", "hash", commits[i].ShortHash, "net", commits[i].Net, "date", commits[i].Date, "running total", commits[i].runningTotal)
-		// }
+		for i := 0; i < len(commits); i++ {
+			slog.Debug("commit", "hash", commits[i].ShortHash, "net", commits[i].Net, "date", commits[i].Date, "running total", commits[i].runningTotal)
+		}
 
 		// write chart if requested
 		if chartPath != "" {
