@@ -15,4 +15,4 @@ FROM scratch
 
 COPY --from=build-env /workspace/lesshero /
 
-ENTRYPOINT ["/lesshero", "-o", "lesshero.html"]
+ENTRYPOINT ["/lesshero"]

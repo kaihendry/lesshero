@@ -70,7 +70,7 @@ func main() {
 
 	flag.StringVar(&chartPath, "o", "lesshero.html", "path to html chart output")
 	flag.StringVar(&startHash, "s", "", "start hash else will start from HEAD and go backwards in time")
-	flag.StringVar(&chartName, "n", "lesshero", "chartName")
+	flag.StringVar(&chartName, "n", "", "chart title, useful when using stdin, default is repo remote")
 
 	flag.BoolVar(&autoOpenChart, "b", false, "auto open chart in default browser")
 
@@ -95,6 +95,7 @@ func main() {
 		repoPath = flag.Arg(0)
 	}
 
+	slog.Info("analyzing", "repo", repoPath, "count", fmt.Sprintf("git -C %s rev-list --all --count", repoPath), "chartPath", chartPath)
 	// read the repository from os.Args
 	r, err := git.PlainOpen(repoPath)
 	if err != nil {
@@ -122,11 +123,33 @@ func main() {
 		}
 	}
 	slog.Info("start commit", "hash", startCommit.Hash.String(), "startHash", startHash)
-	// introduce io.Writer
-	err = getCommits(r, startCommit, os.Stdout)
+
+	buf := &bytes.Buffer{}
+	err = getCommits(r, startCommit, buf)
 	if err != nil {
 		panic(err)
 	}
+	err = visualise(buf, chartPath, getOrigin(r), autoOpenChart)
+	if err != nil {
+		slog.Error("Error visualising", "error", err)
+	}
+}
+
+func getOrigin(r *git.Repository) (gitSrc string) {
+	remotes, err := r.Remotes()
+	if err != nil {
+		slog.Error("Error getting remotes", "error", err)
+		return ""
+	}
+
+	for _, remote := range remotes {
+		r := remote.Config()
+		if r.Name == "origin" {
+			gitSrc = r.URLs[0]
+		}
+	}
+
+	return gitSrc
 }
 
 func visualise(r io.Reader, chartPath string, chartName string, autoOpenChart bool) error {
@@ -165,7 +188,7 @@ func parseLHjson(r io.Reader) ([]LHcommit, error) {
 
 	lineCount := countLines(bytes.NewReader(input))
 	commits := make([]LHcommit, 0, lineCount)
-	slog.Info("line count", "count", lineCount, "commits before appending", len(commits))
+	slog.Debug("line count", "count", lineCount, "commits before appending", len(commits))
 
 	scanner := bufio.NewScanner(bytes.NewReader(input))
 
@@ -271,13 +294,7 @@ func printJSON(c *object.Commit, w io.Writer) error {
 		Email:     c.Author.Email,
 		Net:       getFstats(c),
 	}
-	// json encoder
-	jsonData, err := json.Marshal(lh)
-	if err != nil {
-		return err
-	}
-	fmt.Fprintf(w, "%s\n", jsonData)
-	return err
+	return json.NewEncoder(io.MultiWriter(os.Stdout, w)).Encode(lh)
 }
 
 func getFstats(c *object.Commit) (total int) {
