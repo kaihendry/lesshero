@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
-	"strconv"
 
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/opts"
@@ -51,7 +50,7 @@ func getDecSlocs(commits []LHcommit) []opts.LineData {
 	return items
 }
 
-func chartHero(commits []LHcommit, gitSrc, fn string, total int) error {
+func chartHero(commits []LHcommit, gitSrc, outputFile string) error {
 	slog.Debug("commits", "count", len(commits))
 	slog.Debug("first", "date", commits[0].Date.Format("2006-01-02"), "hash", commits[0].ShortHash, "total", commits[0].Net)
 	slog.Debug("last", "date", commits[len(commits)-1].Date.Format("2006-01-02"), "hash", commits[len(commits)-1].ShortHash, "total", commits[len(commits)-1].Net)
@@ -70,9 +69,6 @@ func chartHero(commits []LHcommit, gitSrc, fn string, total int) error {
 		}),
 		charts.WithTitleOpts(opts.Title{Title: gitSrc, Link: "https://github.com/kaihendry/lesshero"}),
 		charts.WithLegendOpts(opts.Legend{Show: opts.Bool(false)}),
-		charts.WithYAxisOpts(opts.YAxis{
-			Name: "Code Count: " + strconv.Itoa(total),
-		}),
 		charts.WithXAxisOpts(opts.XAxis{
 			Type: "category",
 			Data: getTimes(commits),
@@ -91,7 +87,7 @@ func chartHero(commits []LHcommit, gitSrc, fn string, total int) error {
 	)
 	line.AddJSFuncs(dynamicFn)
 
-	f, err := os.Create(fn)
+	f, err := os.Create(outputFile)
 	if err != nil {
 		return err
 	}
@@ -99,5 +95,6 @@ func chartHero(commits []LHcommit, gitSrc, fn string, total int) error {
 	if err != nil {
 		return err
 	}
+	slog.Info("generated chart", "output", outputFile, "commits", len(commits), "name", gitSrc)
 	return f.Close()
 }

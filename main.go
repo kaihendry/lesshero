@@ -83,72 +83,14 @@ func main() {
 	flag.Parse()
 
 	if isInputFromStdin() {
-		slog.Info("Input from stdin")
-		input, err := io.ReadAll(os.Stdin)
+		err := visualise(os.Stdin, chartPath, chartName, autoOpenChart)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error reading stdin: %v\n", err)
-			return
+			slog.Error("Error visualising", "error", err)
 		}
-
-		lineCount := countLines(bytes.NewReader(input))
-		commits := make([]LHcommit, 0, lineCount)
-		slog.Info("line count", "count", lineCount, "commits before appending", len(commits))
-
-		scanner := bufio.NewScanner(bytes.NewReader(input))
-
-		for scanner.Scan() {
-			line := scanner.Text()
-			commit := LHcommit{}
-			err := json.Unmarshal([]byte(line), &commit)
-			if err != nil {
-				slog.Error("Error unmarshalling JSON", "line", line, "error", err)
-				continue
-			}
-			commits = append(commits, commit)
-		}
-
-		// calculate total
-		total := 0
-		for _, commit := range commits {
-			slog.Debug("adding", "commit", commit.ShortHash, "net", commit.Net, "date", commit.Date)
-			total += commit.Net
-		}
-		slog.Info("total", "count", total, "commit count", len(commits))
-
-		// reverse slice
-		slices.Reverse(commits)
-
-		// calculate running total
-		for i := 0; i < len(commits); i++ {
-			slog.Debug("commit", "hash", commits[i].ShortHash, "net", commits[i].Net, "date", commits[i].Date)
-			commits[i].runningTotal = commits[i].Net
-			if i > 0 {
-				commits[i].runningTotal += commits[i-1].runningTotal
-			}
-		}
-
-		for i := 0; i < len(commits); i++ {
-			slog.Debug("commit", "hash", commits[i].ShortHash, "net", commits[i].Net, "date", commits[i].Date, "running total", commits[i].runningTotal)
-		}
-
-		// write chart if requested
-		if chartPath != "" {
-			err := chartHero(commits, chartName, chartPath, total)
-			if err != nil {
-				slog.Error("Error creating chart", "error", err)
-			}
-		}
-		if autoOpenChart {
-			err = browser.OpenFile(chartPath)
-			if err != nil {
-				slog.Error("charthero open", "err", err)
-				return
-			}
-		}
-
 		return
 	}
 
+	// no stdin, so we are going to read from a git repository
 	if flag.Arg(0) != "" {
 		repoPath = flag.Arg(0)
 	}
@@ -180,10 +122,81 @@ func main() {
 		}
 	}
 	slog.Info("start commit", "hash", startCommit.Hash.String(), "startHash", startHash)
-	err = getCommits(r, startCommit)
+	// introduce io.Writer
+	err = getCommits(r, startCommit, os.Stdout)
 	if err != nil {
 		panic(err)
 	}
+}
+
+func visualise(r io.Reader, chartPath string, chartName string, autoOpenChart bool) error {
+	commits, err := parseLHjson(r)
+	if err != nil {
+		slog.Error("Error parsing JSON", "error", err)
+		return err
+	}
+
+	for i := 0; i < len(commits); i++ {
+		slog.Debug("commit", "hash", commits[i].ShortHash, "net", commits[i].Net, "date", commits[i].Date, "running total", commits[i].runningTotal)
+	}
+
+	if chartPath != "" {
+		err := chartHero(commits, chartName, chartPath)
+		if err != nil {
+			slog.Error("Error creating chart", "error", err)
+		}
+	}
+	if autoOpenChart {
+		err = browser.OpenFile(chartPath)
+		if err != nil {
+			slog.Error("charthero open", "err", err)
+			return err
+		}
+	}
+
+	return nil
+}
+
+func parseLHjson(r io.Reader) ([]LHcommit, error) {
+	input, err := io.ReadAll(r)
+	if err != nil {
+		return nil, err
+	}
+
+	lineCount := countLines(bytes.NewReader(input))
+	commits := make([]LHcommit, 0, lineCount)
+	slog.Info("line count", "count", lineCount, "commits before appending", len(commits))
+
+	scanner := bufio.NewScanner(bytes.NewReader(input))
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		commit := LHcommit{}
+		err := json.Unmarshal([]byte(line), &commit)
+		if err != nil {
+			slog.Error("Error unmarshalling JSON", "line", line, "error", err)
+			continue
+		}
+		commits = append(commits, commit)
+	}
+
+	total := 0
+	for _, commit := range commits {
+		slog.Debug("adding", "commit", commit.ShortHash, "net", commit.Net, "date", commit.Date)
+		total += commit.Net
+	}
+	slog.Info("summary", "count", total, "commits", len(commits))
+
+	slices.Reverse(commits)
+
+	for i := 0; i < len(commits); i++ {
+		slog.Debug("commit", "hash", commits[i].ShortHash, "net", commits[i].Net, "date", commits[i].Date)
+		commits[i].runningTotal = commits[i].Net
+		if i > 0 {
+			commits[i].runningTotal += commits[i-1].runningTotal
+		}
+	}
+	return commits, nil
 }
 
 func countLines(r io.Reader) int {
@@ -226,9 +239,9 @@ func GitCommit() (commit string, dirty bool) {
 	return
 }
 
-func getCommits(r *git.Repository, commit *object.Commit) (err error) {
+func getCommits(r *git.Repository, commit *object.Commit, w io.Writer) (err error) {
 	// follow the commit history via .Parent until the first commit https://github.com/go-git/go-git/issues/465#issuecomment-2121988320
-	err = printJSON(commit)
+	err = printJSON(commit, w)
 	if err != nil {
 		return err
 	}
@@ -242,7 +255,7 @@ func getCommits(r *git.Repository, commit *object.Commit) (err error) {
 		if err != nil {
 			return err
 		}
-		err = printJSON(commit)
+		err = printJSON(commit, w)
 		if err != nil {
 			return err
 		}
@@ -250,7 +263,7 @@ func getCommits(r *git.Repository, commit *object.Commit) (err error) {
 	return nil
 }
 
-func printJSON(c *object.Commit) error {
+func printJSON(c *object.Commit, w io.Writer) error {
 	lh := &LHcommit{
 		ShortHash: c.Hash.String()[:7],
 		Author:    c.Author.Name,
@@ -263,8 +276,8 @@ func printJSON(c *object.Commit) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(string(jsonData))
-	return nil
+	fmt.Fprintf(w, "%s\n", jsonData)
+	return err
 }
 
 func getFstats(c *object.Commit) (total int) {
