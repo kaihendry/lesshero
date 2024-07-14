@@ -22,4 +22,8 @@ jobs:
           go-version: 'stable'
       - name: Test
         run: go test -v ./...
+      - name: build
+        run: go build
+      - name: show help
+        run: ./lesshero -h
       - uses: golangci/golangci-lint-action@v6
