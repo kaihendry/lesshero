@@ -18,4 +18,6 @@ jobs:
         with:
           check-latest: true
           go-version: 'stable'
+      - name: Test
+        run: go test -v ./...
       - uses: golangci/golangci-lint-action@v6
