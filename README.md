@@ -2,7 +2,7 @@
 
 [![Less Hero explainer](http://img.youtube.com/vi/Zlsq9B6KdB0/0.jpg)](http://www.youtube.com/watch?v=Zlsq9B6KdB0 "Highlighting less code")
 
-Demo: https://kaihendry.github.io/scc/
+Demo: https://kaihendry.github.io/lesshero/
 
 ## Goal: Highlight efforts to reduce bloat
 
