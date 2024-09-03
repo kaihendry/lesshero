@@ -7,9 +7,9 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"log"
 	"log/slog"
 	"os"
+	"path/filepath"
 	"runtime/debug"
 	"slices"
 
@@ -70,7 +70,7 @@ func main() {
 
 	flag.StringVar(&chartPath, "o", "lesshero.html", "path to html chart output")
 	flag.StringVar(&startHash, "s", "", "start hash else will start from HEAD and go backwards in time")
-	flag.StringVar(&chartName, "n", "", "chart title, useful when using stdin, default is repo remote")
+	flag.StringVar(&chartName, "n", "", "chart title, useful when using jsonl, default is repo remote")
 
 	flag.BoolVar(&autoOpenChart, "b", false, "auto open chart in default browser")
 
@@ -82,21 +82,26 @@ func main() {
 	}
 	flag.Parse()
 
-	if isInputFromStdin() {
-		err := visualise(os.Stdin, chartPath, chartName, autoOpenChart)
-		if err != nil {
-			slog.Error("Error visualising", "error", err)
-		}
-		return
-	}
-
-	// no stdin, so we are going to read from a git repository
 	if flag.Arg(0) != "" {
 		repoPath = flag.Arg(0)
 	}
 
+	if filepath.Ext(repoPath) == ".jsonl" {
+		slog.Info("reading from jsonl", "file", repoPath)
+		f, err := os.Open(repoPath)
+		if err != nil {
+			slog.Error("opening jsonl file", "error", err)
+			return
+		}
+		err = visualise(f, chartPath, chartName, autoOpenChart)
+		if err != nil {
+			slog.Error("visualising jsonl argument", "error", err)
+		}
+		return
+	}
+
 	slog.Info("analyzing", "repo", repoPath, "count", fmt.Sprintf("git -C %s rev-list --all --count", repoPath), "chartPath", chartPath)
-	// read the repository from os.Args
+
 	r, err := git.PlainOpen(repoPath)
 	if err != nil {
 		panic(err)
@@ -131,14 +136,14 @@ func main() {
 	}
 	err = visualise(buf, chartPath, getOrigin(r), autoOpenChart)
 	if err != nil {
-		slog.Error("Error visualising", "error", err)
+		slog.Error("visualising", "error", err)
 	}
 }
 
 func getOrigin(r *git.Repository) (gitSrc string) {
 	remotes, err := r.Remotes()
 	if err != nil {
-		slog.Error("Error getting remotes", "error", err)
+		slog.Error("getting remotes", "error", err)
 		return ""
 	}
 
@@ -155,7 +160,7 @@ func getOrigin(r *git.Repository) (gitSrc string) {
 func visualise(r io.Reader, chartPath string, chartName string, autoOpenChart bool) error {
 	commits, err := parseLHjson(r)
 	if err != nil {
-		slog.Error("Error parsing JSON", "error", err)
+		slog.Error("parsing JSON", "error", err)
 		return err
 	}
 
@@ -166,7 +171,7 @@ func visualise(r io.Reader, chartPath string, chartName string, autoOpenChart bo
 	if chartPath != "" {
 		err := chartHero(commits, chartName, chartPath)
 		if err != nil {
-			slog.Error("Error creating chart", "error", err)
+			slog.Error("creating chart", "error", err)
 		}
 	}
 	if autoOpenChart {
@@ -197,7 +202,7 @@ func parseLHjson(r io.Reader) ([]LHcommit, error) {
 		commit := LHcommit{}
 		err := json.Unmarshal([]byte(line), &commit)
 		if err != nil {
-			slog.Error("Error unmarshalling JSON", "line", line, "error", err)
+			slog.Error("unmarshalling JSON", "line", line, "error", err)
 			continue
 		}
 		commits = append(commits, commit)
@@ -232,18 +237,6 @@ func countLines(r io.Reader) int {
 		fmt.Fprintf(os.Stderr, "Error counting lines: %v\n", err)
 	}
 	return lineCount
-}
-
-func isInputFromStdin() bool {
-	info, err := os.Stdin.Stat()
-	if err != nil {
-		log.Fatal(err)
-	}
-	if info.Mode()&os.ModeNamedPipe == 0 {
-		return false
-	} else {
-		return true
-	}
 }
 
 func GitCommit() (commit string, dirty bool) {
