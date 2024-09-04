@@ -30,7 +30,7 @@ jobs:
         with:
           fetch-depth: 0
       - uses: actions/configure-pages@v5
-      - uses: kaihendry/lesshero@0.1.0
+      - uses: kaihendry/lesshero@v0.1.2
       - run:  mkdir "_site" && mv lesshero.html _site/index.html
       - name: Upload artifact # TODO: we want to ideally upload one file, not overwrite the whole site!
         uses: actions/upload-pages-artifact@v3
