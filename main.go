@@ -74,7 +74,7 @@ func main() {
 		fmt.Fprintf(flag.CommandLine.Output(), "Usage of %s:\n", os.Args[0])
 		fmt.Fprintf(flag.CommandLine.Output(), "  %s [options] [git repo path]\n", os.Args[0])
 		flag.PrintDefaults()
-		fmt.Fprintf(flag.CommandLine.Output(), "\nhttps://github.com/kaihendry/lesshero/commit/%s\n", version)
+		fmt.Fprintf(flag.CommandLine.Output(), "\nhttps://github.com/kaihendry/lesshero/releases/tag/%s\n", version)
 	}
 	flag.Parse()
 
