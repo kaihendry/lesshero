@@ -49,15 +49,6 @@ func getLogger(logLevel string) *slog.Logger {
 }
 
 func main() {
-	// cpuFile, err := os.Create("cpu.prof")
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// defer cpuFile.Close()
-	// if err := pprof.StartCPUProfile(cpuFile); err != nil {
-	// 	log.Fatal("could not start CPU profile: ", err)
-	// }
-	// defer pprof.StopCPUProfile()
 	slog.SetDefault(getLogger(os.Getenv("LOGLEVEL")))
 
 	var chartPath string
@@ -65,8 +56,13 @@ func main() {
 	var chartName string
 	var autoOpenChart bool
 
-	version, dirty := GitCommit()
-	slog.Info("lh version", version, dirty)
+	buildInfo, ok := debug.ReadBuildInfo()
+	if !ok {
+		slog.Error("debug.ReadBuildInfo() failed")
+		return
+	}
+	version := buildInfo.Main.Version
+	slog.Info("lesshero", "version", version)
 
 	flag.StringVar(&chartPath, "o", "lesshero.html", "path to html chart output")
 	flag.StringVar(&startHash, "s", "", "start hash else will start from HEAD and go backwards in time")
@@ -237,22 +233,6 @@ func countLines(r io.Reader) int {
 		fmt.Fprintf(os.Stderr, "Error counting lines: %v\n", err)
 	}
 	return lineCount
-}
-
-func GitCommit() (commit string, dirty bool) {
-	bi, ok := debug.ReadBuildInfo()
-	if !ok {
-		return "", false
-	}
-	for _, setting := range bi.Settings {
-		switch setting.Key {
-		case "vcs.modified":
-			dirty = setting.Value == "true"
-		case "vcs.revision":
-			commit = setting.Value
-		}
-	}
-	return
 }
 
 func getCommits(r *git.Repository, commit *object.Commit, w io.Writer) (err error) {
