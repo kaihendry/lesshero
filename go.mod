@@ -1,6 +1,6 @@
 module github.com/kaihendry/lesshero
 
-go 1.22.3
+go 1.23
 
 require (
 	github.com/go-echarts/go-echarts/v2 v2.4.1
