@@ -3,7 +3,7 @@ module github.com/kaihendry/lesshero
 go 1.23
 
 require (
-	github.com/go-echarts/go-echarts/v2 v2.4.6
+	github.com/go-echarts/go-echarts/v2 v2.5.0
 	github.com/go-git/go-git/v5 v5.13.1
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c
 )
