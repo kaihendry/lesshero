@@ -26,4 +26,4 @@ jobs:
         run: go build
       - name: show help
         run: ./lesshero -h
-      - uses: golangci/golangci-lint-action@v6
+      - uses: golangci/golangci-lint-action@v9
