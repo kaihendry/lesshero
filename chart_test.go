@@ -14,8 +14,8 @@ func TestChartAttributionAndAuthors(t *testing.T) {
 	// Commits on the same date must still show their own authors and counts.
 	date := time.Date(2026, 9, 9, 0, 0, 0, 0, time.UTC)
 	commits := []LHcommit{
-		{ShortHash: "abc1234", Author: "Alice", Date: date, Net: 10, runningTotal: 10},
-		{ShortHash: "def5678", Author: `Bob "Hero" <script>alert('x')</script> & Co`, Date: date, Net: -3, runningTotal: 7},
+		{ShortHash: "abc1234", Author: "Alice", Date: date, Net: 10},
+		{ShortHash: "def5678", Author: `Bob "Hero" <script>alert('x')</script> & Co`, Date: date, Net: -3},
 	}
 	for _, title := range []string{"example/repo", ""} {
 		t.Run(title, func(t *testing.T) {

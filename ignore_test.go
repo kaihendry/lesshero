@@ -1,9 +1,9 @@
 package main
 
 import (
-	"bytes"
 	"os"
 	"path/filepath"
+	"slices"
 	"testing"
 	"time"
 
@@ -100,19 +100,18 @@ func TestIgnoreHistory(t *testing.T) {
 		{"new name only", []string{"static/all.json"}, func(i int) int { return steps[i].new }},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			var buf bytes.Buffer
-			if err := getCommits(repo, head, &buf, tc.ignore); err != nil {
-				t.Fatal(err)
-			}
-			commits, err := parseLHjson(&buf)
+			commits, err := getCommits(head, tc.ignore)
 			if err != nil {
 				t.Fatal(err)
 			}
+			slices.Reverse(commits)
 			if len(commits) != len(steps) {
 				t.Fatalf("got %d commits, want %d", len(commits), len(steps))
 			}
+			total := 0
 			for i, commit := range commits {
-				if got, want := commit.runningTotal, tc.want(i); got != want {
+				total += commit.Net
+				if got, want := total, tc.want(i); got != want {
 					t.Errorf("%s: total = %d, want %d", steps[i].name, got, want)
 				}
 			}
