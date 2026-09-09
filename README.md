@@ -15,7 +15,7 @@ a diet!
 
 ## Install
 
-Assuming you have a Go runtime installed:
+With Go 1.27 or later installed:
 
     go install github.com/kaihendry/lesshero@latest
 
@@ -26,7 +26,7 @@ Assuming you have a Go runtime installed:
 Explicit usage:
 
     lesshero /path/to/a/full/git/checkout > sloc.jsonl
-    cat sloc.jsonl | lesshero -o chart.html
+    lesshero -o chart.html sloc.jsonl
 
 Exclude data files from the entire history:
 

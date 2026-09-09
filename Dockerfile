@@ -1,6 +1,5 @@
-FROM golang:latest AS build-env
+FROM golang:1.27 AS build-env
 
-RUN mkdir -p /workspace
 WORKDIR /workspace
 
 ENV GOOS=linux

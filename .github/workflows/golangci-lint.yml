@@ -13,13 +13,13 @@ jobs:
     name: lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v7
         with:
           check-latest: true
-          go-version: 'stable'
+          go-version-file: go.mod
       - name: Test
         run: go test -v ./...
       - name: build
