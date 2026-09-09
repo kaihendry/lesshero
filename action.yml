@@ -2,6 +2,14 @@
 name: 'Less Hero'
 description: Creates lesshero.html, a SLOC graph of your project
 icon: activity
+inputs:
+  ignore:
+    description: 'Comma-separated repository-relative file paths to ignore across all history'
+    required: false
+    default: ''
 runs:
   using: 'docker'
   image: 'Dockerfile'
+  args:
+    - '-ignore'
+    - '${{ inputs.ignore }}'

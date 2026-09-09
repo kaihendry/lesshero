@@ -27,7 +27,7 @@ func TestGetCommits(t *testing.T) {
 
 	var buf bytes.Buffer
 
-	err = getCommits(repo, commit, &buf)
+	err = getCommits(repo, commit, &buf, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

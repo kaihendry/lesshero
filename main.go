@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"runtime/debug"
 	"slices"
+	"strings"
 
 	"time"
 
@@ -55,6 +56,7 @@ func main() {
 	var startHash string
 	var chartName string
 	var autoOpenChart bool
+	var ignoredPaths string
 
 	buildInfo, ok := debug.ReadBuildInfo()
 	if !ok {
@@ -67,6 +69,7 @@ func main() {
 	flag.StringVar(&chartPath, "o", "lesshero.html", "path to html chart output")
 	flag.StringVar(&startHash, "s", "", "start hash else will start from HEAD and go backwards in time")
 	flag.StringVar(&chartName, "n", "", "chart title, useful when using jsonl, default is repo remote")
+	flag.StringVar(&ignoredPaths, "ignore", "", "comma-separated repository-relative file paths to ignore across all history")
 
 	flag.BoolVar(&autoOpenChart, "b", false, "auto open chart in default browser")
 
@@ -77,6 +80,12 @@ func main() {
 		fmt.Fprintf(flag.CommandLine.Output(), "\nhttps://github.com/kaihendry/lesshero/releases/tag/%s\n", version)
 	}
 	flag.Parse()
+	var ignore []string
+	for _, name := range strings.Split(ignoredPaths, ",") {
+		if name = strings.TrimSpace(name); name != "" {
+			ignore = append(ignore, name)
+		}
+	}
 
 	if flag.Arg(0) != "" {
 		repoPath = flag.Arg(0)
@@ -126,7 +135,7 @@ func main() {
 	slog.Info("start commit", "hash", startCommit.Hash.String(), "startHash", startHash)
 
 	buf := &bytes.Buffer{}
-	err = getCommits(r, startCommit, buf)
+	err = getCommits(r, startCommit, buf, ignore)
 	if err != nil {
 		panic(err)
 	}
@@ -235,9 +244,9 @@ func countLines(r io.Reader) int {
 	return lineCount
 }
 
-func getCommits(r *git.Repository, commit *object.Commit, w io.Writer) (err error) {
+func getCommits(r *git.Repository, commit *object.Commit, w io.Writer, ignore []string) (err error) {
 	// follow the commit history via .Parent until the first commit https://github.com/go-git/go-git/issues/465#issuecomment-2121988320
-	err = printJSON(commit, w)
+	err = printJSON(commit, w, ignore)
 	if err != nil {
 		return err
 	}
@@ -251,7 +260,7 @@ func getCommits(r *git.Repository, commit *object.Commit, w io.Writer) (err erro
 		if err != nil {
 			return err
 		}
-		err = printJSON(commit, w)
+		err = printJSON(commit, w, ignore)
 		if err != nil {
 			return err
 		}
@@ -259,24 +268,63 @@ func getCommits(r *git.Repository, commit *object.Commit, w io.Writer) (err erro
 	return nil
 }
 
-func printJSON(c *object.Commit, w io.Writer) error {
+func printJSON(c *object.Commit, w io.Writer, ignore []string) error {
+	net, err := getFstats(c, ignore)
+	if err != nil {
+		return fmt.Errorf("counting commit %s: %w", c.Hash, err)
+	}
 	lh := &LHcommit{
 		ShortHash: c.Hash.String()[:7],
 		Author:    c.Author.Name,
 		Date:      c.Author.When,
 		Email:     c.Author.Email,
-		Net:       getFstats(c),
+		Net:       net,
 	}
 	return json.NewEncoder(io.MultiWriter(os.Stdout, w)).Encode(lh)
 }
 
-func getFstats(c *object.Commit) (total int) {
-	fStats, err := c.Stats()
+func getFstats(c *object.Commit, ignore []string) (total int, err error) {
+	fStats, err := fileStats(c, ignore)
 	if err != nil {
-		return 0
+		return 0, err
 	}
 	for _, fStat := range fStats {
 		total += fStat.Addition - fStat.Deletion
 	}
-	return total
+	return total, nil
+}
+
+func fileStats(c *object.Commit, ignore []string) (object.FileStats, error) {
+	if len(ignore) == 0 {
+		return c.Stats()
+	}
+	to, err := c.Tree()
+	if err != nil {
+		return nil, err
+	}
+	var from *object.Tree
+	if c.NumParents() != 0 {
+		parent, err := c.Parent(0)
+		if err != nil {
+			return nil, err
+		}
+		from, err = parent.Tree()
+		if err != nil {
+			return nil, err
+		}
+	}
+	// DiffTree does not detect renames: a move is a deletion plus an addition.
+	// This lets each path count independently when a file enters or leaves ignore.
+	changes, err := object.DiffTree(from, to)
+	if err != nil {
+		return nil, err
+	}
+	changes = slices.DeleteFunc(changes, func(change *object.Change) bool {
+		return slices.Contains(ignore, change.From.Name) || slices.Contains(ignore, change.To.Name)
+	})
+	patch, err := changes.Patch()
+	if err != nil {
+		return nil, err
+	}
+	return patch.Stats(), nil
 }
