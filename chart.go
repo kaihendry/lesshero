@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"html"
 	"log/slog"
 	"os"
 
@@ -56,6 +58,17 @@ func chartHero(commits []LHcommit, gitSrc, outputFile string) error {
 	slog.Debug("last", "date", commits[len(commits)-1].Date.Format("2006-01-02"), "hash", commits[len(commits)-1].ShortHash, "total", commits[len(commits)-1].Net)
 
 	line := charts.NewLine()
+	tooltips := make([]string, len(commits))
+	for i, commit := range commits {
+		tooltips[i] = fmt.Sprintf("%s · %s<br/>%s<br/>%d SLOC (%+d)",
+			commit.Date.Format("2006-01-02"), html.EscapeString(commit.ShortHash),
+			html.EscapeString(commit.Author), commit.runningTotal, commit.Net)
+	}
+	tooltipJSON, err := json.Marshal(tooltips)
+	if err != nil {
+		return err
+	}
+	line.AddJSFuncs(fmt.Sprintf("const tooltips_%s = %s;", line.ChartID, tooltipJSON))
 	line.SetGlobalOptions(
 		charts.WithInitializationOpts(opts.Initialization{PageTitle: "Less Hero"}),
 		charts.WithDataZoomOpts(opts.DataZoom{
@@ -65,9 +78,12 @@ func chartHero(commits []LHcommit, gitSrc, outputFile string) error {
 			Trigger:   "axis",
 			TriggerOn: "mousemove|click",
 			Show:      opts.Bool(true),
-			Formatter: "{b}: {c}",
+			Formatter: opts.FuncOpts(fmt.Sprintf("function (params) { return tooltips_%s[params[0].dataIndex]; }", line.ChartID)),
 		}),
-		charts.WithTitleOpts(opts.Title{Title: gitSrc, Link: "https://github.com/kaihendry/lesshero"}),
+		charts.WithTitleOpts(opts.Title{
+			Title: gitSrc, Subtitle: "Made with Less Hero",
+			SubLink: "https://github.com/kaihendry/lesshero",
+		}),
 		charts.WithLegendOpts(opts.Legend{Show: opts.Bool(false)}),
 		charts.WithXAxisOpts(opts.XAxis{
 			Type: "category",
